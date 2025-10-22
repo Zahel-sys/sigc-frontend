@@ -1,18 +1,29 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
       const res = await api.post("/auth/login", { email, password });
-      localStorage.setItem("token", res.data.token);
-      setMessage("✅ Login exitoso");
-      console.log(res.data);
+      const { token, rol } = res.data;
+
+      // Guardamos token y rol en localStorage
+      localStorage.setItem("token", token);
+      localStorage.setItem("rol", rol);
+
+      // Redirigir según rol
+      if (rol === "ADMIN") {
+        navigate("/admin");
+      } else {
+        navigate("/cliente");
+      }
     } catch (error) {
       setMessage("❌ Credenciales inválidas");
     }

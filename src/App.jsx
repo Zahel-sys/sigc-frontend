@@ -6,6 +6,7 @@ import CitasCliente from "./pages/CitasCliente";
 import Especialidades from "./pages/Especialidades";
 import Turnos from "./pages/Turnos";
 import CitaConfirmada from "./pages/CitaConfirmada";
+import AdminEspecialidades from "./pages/AdminEspecialidades"; // 👈 nuevo import
 import PrivateRoute from "./components/PrivateRoute";
 
 function App() {
@@ -21,6 +22,16 @@ function App() {
           element={
             <PrivateRoute>
               <DashboardAdmin />
+            </PrivateRoute>
+          }
+        />
+
+        {/* CRUD de Especialidades del Administrador */}
+        <Route
+          path="/admin/especialidades"
+          element={
+            <PrivateRoute>
+              <AdminEspecialidades />
             </PrivateRoute>
           }
         />
@@ -59,3 +70,4 @@ function App() {
 }
 
 export default App;
+

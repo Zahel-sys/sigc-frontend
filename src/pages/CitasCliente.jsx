@@ -17,6 +17,13 @@ export default function CitasCliente() {
     }
   };
 
+  const puedeCancelar = (fechaCita) => {
+    const hoy = new Date();
+    const fecha = new Date(fechaCita);
+    const diff = (fecha - hoy) / (1000 * 60 * 60 * 24);
+    return diff >= 2; // Solo si faltan 2 días o más
+  };
+
   useEffect(() => {
     cargarCitas();
   }, []);
@@ -45,12 +52,16 @@ export default function CitasCliente() {
                 <td>{c.fechaCita}</td>
                 <td>{c.horaCita}</td>
                 <td>
-                  <button
-                    className="btn btn-danger btn-sm"
-                    onClick={() => eliminarCita(c.idCita)}
-                  >
-                    Cancelar
-                  </button>
+                  {puedeCancelar(c.fechaCita) ? (
+                    <button
+                      className="btn btn-danger btn-sm"
+                      onClick={() => eliminarCita(c.idCita)}
+                    >
+                      Cancelar
+                    </button>
+                  ) : (
+                    <span className="text-muted">No cancelable</span>
+                  )}
                 </td>
               </tr>
             ))}

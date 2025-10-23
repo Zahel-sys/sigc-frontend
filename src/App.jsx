@@ -7,7 +7,8 @@ import Especialidades from "./pages/Especialidades";
 import Turnos from "./pages/Turnos";
 import CitaConfirmada from "./pages/CitaConfirmada";
 import AdminEspecialidades from "./pages/AdminEspecialidades";
-import AdminDoctores from "./pages/AdminDoctores"; // 👈 nuevo import
+import AdminDoctores from "./pages/AdminDoctores";
+import AdminHorarios from "./pages/AdminHorarios"; // 👈 nuevo import
 import PrivateRoute from "./components/PrivateRoute";
 
 function App() {
@@ -43,6 +44,16 @@ function App() {
           element={
             <PrivateRoute>
               <AdminDoctores />
+            </PrivateRoute>
+          }
+        />
+
+        {/* CRUD de Horarios del Administrador */}
+        <Route
+          path="/admin/horarios"
+          element={
+            <PrivateRoute>
+              <AdminHorarios />
             </PrivateRoute>
           }
         />

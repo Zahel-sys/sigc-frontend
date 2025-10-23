@@ -1,16 +1,15 @@
-import { Link } from "react-router-dom";
+import ClienteLayout from "../layouts/ClienteLayout";
 
 export default function DashboardCliente() {
   return (
-    <div className="container mt-5">
-      <h2>Panel del Cliente</h2>
-      <p>Bienvenido, Cliente. Aquí puedes gestionar tus citas.</p>
-      <Link to="/cliente/citas" className="btn btn-primary mt-3">
-        Ir a mis citas
-      </Link>
-      <Link to="/especialidades" className="btn btn-primary mt-3">
-  Ver especialidades disponibles
-</Link>
-    </div>
+    <ClienteLayout>
+      <h3>Bienvenido al Sistema de Gestión de Citas</h3>
+      <p>Desde este panel puedes:</p>
+      <ul>
+        <li>Ver tus citas registradas.</li>
+        <li>Explorar especialidades y agendar nuevas citas.</li>
+        <li>Actualizar tu información personal.</li>
+      </ul>
+    </ClienteLayout>
   );
 }

@@ -6,22 +6,21 @@ export default function CitasCliente() {
   const [citas, setCitas] = useState([]);
 
   const cargarCitas = async () => {
-    const res = await api.get("/citas");
+    const user = JSON.parse(localStorage.getItem("user"));
+    const res = await api.get(`/citas/usuario/${user.id}`);
     setCitas(res.data);
   };
 
-  const eliminarCita = async (id) => {
+  const cancelarCita = async (idCita) => {
     if (confirm("¿Deseas cancelar esta cita?")) {
-      await api.delete(`/citas/${id}`);
-      cargarCitas();
+      try {
+        await api.put(`/citas/${idCita}/cancelar`);
+        alert("✅ Cita cancelada correctamente");
+        cargarCitas();
+      } catch (err) {
+        alert("❌ " + err.response?.data);
+      }
     }
-  };
-
-  const puedeCancelar = (fechaCita) => {
-    const hoy = new Date();
-    const fecha = new Date(fechaCita);
-    const diff = (fecha - hoy) / (1000 * 60 * 60 * 24);
-    return diff >= 2; // Solo si faltan 2 días o más
   };
 
   useEffect(() => {
@@ -32,35 +31,37 @@ export default function CitasCliente() {
     <ClienteLayout>
       <h3 className="mb-4">Mis Citas</h3>
       <div className="table-responsive">
-        <table className="table table-striped table-hover align-middle">
+        <table className="table table-striped align-middle text-center">
           <thead className="table-success">
             <tr>
               <th>#</th>
-              <th>Especialidad</th>
               <th>Doctor</th>
+              <th>Especialidad</th>
               <th>Fecha</th>
               <th>Hora</th>
-              <th>Acciones</th>
+              <th>Estado</th>
+              <th>Acción</th>
             </tr>
           </thead>
           <tbody>
             {citas.map((c, i) => (
               <tr key={c.idCita}>
                 <td>{i + 1}</td>
-                <td>{c.especialidad?.nombre}</td>
                 <td>{c.doctor?.nombre}</td>
+                <td>{c.doctor?.especialidad}</td>
                 <td>{c.fechaCita}</td>
                 <td>{c.horaCita}</td>
+                <td>{c.estado}</td>
                 <td>
-                  {puedeCancelar(c.fechaCita) ? (
+                  {c.estado === "ACTIVA" ? (
                     <button
                       className="btn btn-danger btn-sm"
-                      onClick={() => eliminarCita(c.idCita)}
+                      onClick={() => cancelarCita(c.idCita)}
                     >
                       Cancelar
                     </button>
                   ) : (
-                    <span className="text-muted">No cancelable</span>
+                    <span className="text-muted">No disponible</span>
                   )}
                 </td>
               </tr>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import ClienteLayout from "../layouts/ClienteLayout";
 import api from "../services/api";
+import { showSuccess, showWarning, showError, showConfirm } from "../utils/alerts";
 
 export default function Turnos() {
   const { idEspecialidad } = useParams();
@@ -15,7 +16,8 @@ export default function Turnos() {
   // 🩺 Cargar doctores filtrados por especialidad
   useEffect(() => {
     setCargando(true);
-    api.get("/doctores")
+    api
+      .get("/doctores")
       .then((res) => {
         const filtrados = res.data.filter(
           (d) =>
@@ -32,7 +34,7 @@ export default function Turnos() {
     setDoctorSeleccionado(idDoctor);
     setCargando(true);
     api
-      .get(`/horarios`)
+      .get("/horarios")
       .then((res) => {
         const horariosFiltrados = res.data.filter(
           (h) => h.doctor?.idDoctor === idDoctor && h.disponible
@@ -44,34 +46,40 @@ export default function Turnos() {
 
   // 📅 Reservar cita
   const reservarCita = async (idHorario) => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user) {
-      alert("⚠️ Debes iniciar sesión para agendar una cita.");
+    // ✅ Detectar usuario logueado con distintas claves posibles
+    const usuario =
+      JSON.parse(localStorage.getItem("usuario")) ||
+      JSON.parse(localStorage.getItem("user")) ||
+      JSON.parse(localStorage.getItem("paciente"));
+
+    if (!usuario || !usuario.idUsuario) {
+      showWarning("Debes iniciar sesión para agendar una cita.", "Sesión requerida");
       return;
     }
 
-    const confirmar = confirm("¿Deseas confirmar esta cita?");
+    const confirmar = await showConfirm("¿Deseas confirmar esta cita?", "Confirmar reserva");
     if (!confirmar) return;
 
     const cita = {
-      usuario: { idUsuario: user.id },
+      paciente: { idUsuario: usuario.idUsuario },
       horario: { idHorario },
     };
 
     try {
       await api.post("/citas", cita);
-      alert("✅ Cita agendada correctamente.");
+      showSuccess("Cita agendada correctamente.", "Reserva exitosa");
       navigate("/cliente/citas");
     } catch (err) {
-      alert("❌ No se pudo agendar la cita: " + err.response?.data || err.message);
+      console.error("Error al agendar cita:", err);
+      showError(err.response?.data?.message || "No se pudo agendar la cita.");
     }
   };
 
   return (
     <ClienteLayout>
       <div className="container mt-5">
-        <h2 className="text-center mb-4 fw-bold">
-          Turnos disponibles - {idEspecialidad}
+        <h2 className="text-center mb-4 fw-bold text-green-700">
+          🗓️ Turnos disponibles - {idEspecialidad}
         </h2>
 
         {cargando && (
@@ -87,6 +95,7 @@ export default function Turnos() {
           </p>
         )}
 
+        {/* 🔹 Listado de doctores */}
         <div className="row justify-content-center">
           {doctores.map((doc) => (
             <div
@@ -112,14 +121,14 @@ export default function Turnos() {
                   className="card-img-top"
                   style={{
                     objectFit: "cover",
-                    height: "200px",
+                    height: "230px",
                     borderTopLeftRadius: "10px",
                     borderTopRightRadius: "10px",
                   }}
                   onError={(e) => (e.target.src = "/default.png")}
                 />
                 <div className="card-body text-center">
-                  <h5 className="fw-bold">{doc.nombre}</h5>
+                  <h5 className="fw-bold text-green-700">{doc.nombre}</h5>
                   <p className="text-muted small">{doc.especialidad}</p>
                   <p className="text-secondary small">
                     Cupo de pacientes: {doc.cupoPacientes}
@@ -130,11 +139,13 @@ export default function Turnos() {
           ))}
         </div>
 
-        {/* 🕒 Mostrar horarios del doctor seleccionado */}
+        {/* 🕒 Horarios disponibles */}
         {doctorSeleccionado && (
           <>
             <hr />
-            <h4 className="text-center mb-3">Horarios Disponibles</h4>
+            <h4 className="text-center mb-3 fw-semibold text-green-700">
+              Horarios Disponibles
+            </h4>
 
             {horarios.length === 0 ? (
               <p className="text-center text-muted">
@@ -142,7 +153,7 @@ export default function Turnos() {
               </p>
             ) : (
               <div className="table-responsive">
-                <table className="table table-striped align-middle text-center">
+                <table className="table table-striped align-middle text-center shadow-sm">
                   <thead className="table-success">
                     <tr>
                       <th>Fecha</th>
@@ -161,7 +172,7 @@ export default function Turnos() {
                         <td>{h.horaFin}</td>
                         <td>
                           <button
-                            className="btn btn-success btn-sm"
+                            className="btn btn-success btn-sm rounded-pill px-3"
                             onClick={() => reservarCita(h.idHorario)}
                           >
                             Reservar
@@ -179,10 +190,15 @@ export default function Turnos() {
 
       <style>
         {`
+          .card {
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+          }
           .card:hover {
-            transform: translateY(-5px);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-6px);
+            box-shadow: 0 8px 18px rgba(0,0,0,0.1);
+          }
+          th {
+            color: #065f46;
           }
         `}
       </style>

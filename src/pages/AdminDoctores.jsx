@@ -1,191 +1,168 @@
 import { useEffect, useState } from "react";
-import AdminLayout from "../layouts/AdminLayout";
 import api from "../services/api";
+import AdminLayout from "../layouts/AdminLayout";
+import "../styles/AdminDoctores.css";
 
 export default function AdminDoctores() {
   const [doctores, setDoctores] = useState([]);
   const [especialidades, setEspecialidades] = useState([]);
-  const [form, setForm] = useState({
-    nombre: "",
-    especialidad: "",
-    cupoPacientes: "",
-    imagen: "",
-  });
-  const [editando, setEditando] = useState(null);
-
-  const cargarDatos = async () => {
-    const resDoc = await api.get("/doctores");
-    const resEsp = await api.get("/especialidades");
-    setDoctores(resDoc.data);
-    setEspecialidades(resEsp.data);
-  };
+  const [nombre, setNombre] = useState("");
+  const [especialidad, setEspecialidad] = useState("");
+  const [cupoPacientes, setCupoPacientes] = useState("");
+  const [imagen, setImagen] = useState(null);
+  const [modoEdicion, setModoEdicion] = useState(false);
+  const [doctorEditando, setDoctorEditando] = useState(null);
 
   useEffect(() => {
-    cargarDatos();
+    cargarDoctores();
+    cargarEspecialidades();
   }, []);
 
-  const handleSubmit = async (e) => {
+  const cargarDoctores = async () => {
+    const res = await api.get("/doctores");
+    setDoctores(res.data);
+  };
+
+  const cargarEspecialidades = async () => {
+    const res = await api.get("/especialidades");
+    setEspecialidades(res.data);
+  };
+
+  const handleRegistrarOEditar = async (e) => {
     e.preventDefault();
-    if (editando) {
-      await api.put(`/doctores/${editando}`, form);
+
+    if (!nombre || !especialidad || !cupoPacientes) {
+      alert("Por favor completa todos los campos");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("nombre", nombre);
+    formData.append("especialidad", especialidad);
+    formData.append("cupoPacientes", cupoPacientes);
+    if (imagen) formData.append("imagen", imagen);
+
+    if (modoEdicion) {
+      await api.put(`/doctores/${doctorEditando}`, formData);
+      alert("✅ Doctor actualizado correctamente");
+      setModoEdicion(false);
+      setDoctorEditando(null);
     } else {
-      await api.post("/doctores", form);
+      await api.post("/doctores", formData);
+      alert("✅ Doctor registrado correctamente");
     }
-    setForm({ nombre: "", especialidad: "", cupoPacientes: "", imagen: "" });
-    setEditando(null);
-    cargarDatos();
+
+    setNombre("");
+    setEspecialidad("");
+    setCupoPacientes("");
+    setImagen(null);
+    cargarDoctores();
   };
 
-  const eliminarDoctor = async (id) => {
-    if (confirm("¿Eliminar este doctor?")) {
+  const handleEliminar = async (id) => {
+    if (window.confirm("¿Eliminar este doctor?")) {
       await api.delete(`/doctores/${id}`);
-      cargarDatos();
+      cargarDoctores();
     }
   };
 
-  const editarDoctor = (doc) => {
-    setForm({
-      nombre: doc.nombre,
-      especialidad: doc.especialidad,
-      cupoPacientes: doc.cupoPacientes,
-      imagen: doc.imagen,
-    });
-    setEditando(doc.idDoctor);
+  const handleEditar = (doctor) => {
+    setModoEdicion(true);
+    setDoctorEditando(doctor.idDoctor);
+    setNombre(doctor.nombre);
+    setEspecialidad(doctor.especialidad);
+    setCupoPacientes(doctor.cupoPacientes);
+    setImagen(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const data = new FormData();
-    data.append("file", file);
-    const res = await api.post("/uploads", data, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-    setForm({ ...form, imagen: res.data });
+  const handleCancelar = () => {
+    setModoEdicion(false);
+    setDoctorEditando(null);
+    setNombre("");
+    setEspecialidad("");
+    setCupoPacientes("");
+    setImagen(null);
   };
 
   return (
     <AdminLayout>
-      <h3 className="mb-4">Gestión de Doctores</h3>
+      <div className="admin-doctores-container">
+        <h1 className="titulo-admin"> Gestión de Doctores</h1>
 
-      {/* Formulario */}
-      <form onSubmit={handleSubmit} className="mb-4">
-        <div className="row g-2">
-          <div className="col-md-3">
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Nombre del doctor"
-              value={form.nombre}
-              onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-              required
-            />
-          </div>
-          <div className="col-md-3">
-            <select
-              className="form-select"
-              value={form.especialidad}
-              onChange={(e) => setForm({ ...form, especialidad: e.target.value })}
-              required
-            >
-              <option value="">Seleccionar especialidad</option>
-              {especialidades.map((esp) => (
-                <option key={esp.idEspecialidad} value={esp.nombre}>
-                  {esp.nombre}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="col-md-2">
-            <input
-              type="number"
-              className="form-control"
-              placeholder="Cupo"
-              value={form.cupoPacientes}
-              onChange={(e) =>
-                setForm({ ...form, cupoPacientes: e.target.value })
-              }
-              required
-              min="1"
-              max="20"
-            />
-          </div>
-          <div className="col-md-3">
-            <input
-              type="file"
-              className="form-control"
-              accept="image/*"
-              onChange={handleFileUpload}
-            />
-          </div>
-          <div className="col-md-1 d-grid">
-            <button className="btn btn-primary">
-              {editando ? "Actualizar" : "Agregar"}
-            </button>
-          </div>
-        </div>
-      </form>
-
-      {/* Tabla */}
-      <div className="table-responsive">
-        <table className="table table-striped table-hover align-middle">
-          <thead className="table-primary">
-            <tr>
-              <th>#</th>
-              <th>Foto</th>
-              <th>Nombre</th>
-              <th>Especialidad</th>
-              <th>Cupo</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {doctores.map((doc, i) => (
-              <tr key={doc.idDoctor}>
-                <td>{i + 1}</td>
-                <td>
-                  {doc.imagen ? (
-                    <img
-                      src={
-                        doc.imagen?.startsWith("http")
-                          ? doc.imagen
-                          : `http://localhost:8080${doc.imagen}`
-                      }
-                      alt={doc.nombre}
-                      style={{
-                        width: "70px",
-                        height: "70px",
-                        borderRadius: "50%",
-                        objectFit: "cover",
-                        border: "1px solid #ccc",
-                      }}
-                    />
-                  ) : (
-                    <span className="text-muted">Sin foto</span>
-                  )}
-                </td>
-                <td>{doc.nombre}</td>
-                <td>{doc.especialidad}</td>
-                <td>{doc.cupoPacientes}</td>
-                <td>
-                  <button
-                    className="btn btn-warning btn-sm me-2"
-                    onClick={() => editarDoctor(doc)}
-                  >
-                    Editar
-                  </button>
-                  <button
-                    className="btn btn-danger btn-sm"
-                    onClick={() => eliminarDoctor(doc.idDoctor)}
-                  >
-                    Eliminar
-                  </button>
-                </td>
-              </tr>
+        <form className="form-doctor" onSubmit={handleRegistrarOEditar}>
+          <input
+            type="text"
+            placeholder="Nombre del doctor"
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
+          />
+          <select
+            value={especialidad}
+            onChange={(e) => setEspecialidad(e.target.value)}
+          >
+            <option value="">Seleccionar especialidad</option>
+            {especialidades.map((esp) => (
+              <option key={esp.idEspecialidad} value={esp.nombre}>
+                {esp.nombre}
+              </option>
             ))}
-          </tbody>
-        </table>
+          </select>
+          <input
+            type="number"
+            placeholder="Cupo"
+            value={cupoPacientes}
+            onChange={(e) => setCupoPacientes(e.target.value)}
+          />
+          <input type="file" onChange={(e) => setImagen(e.target.files[0])} />
+          <button type="submit" className={modoEdicion ? "btn-actualizar" : ""}>
+            {modoEdicion ? "Actualizar" : "Registrar"}
+          </button>
+
+          {modoEdicion && (
+            <button
+              type="button"
+              onClick={handleCancelar}
+              className="btn-cancelar"
+            >
+              Cancelar
+            </button>
+          )}
+        </form>
+
+        <div className="cards-container">
+          {doctores.map((doc) => (
+            <div key={doc.idDoctor} className="card-doctor">
+              <img
+                src={`http://localhost:8080${doc.imagen}`}
+                alt={doc.nombre}
+                className="doctor-img"
+              />
+              <h3>{doc.nombre}</h3>
+              <p>
+                <strong>Especialidad:</strong> {doc.especialidad}
+              </p>
+              <p>
+                <strong>Cupo:</strong> {doc.cupoPacientes} pacientes
+              </p>
+
+              <div className="acciones">
+                <button
+                  className="btn-editar"
+                  onClick={() => handleEditar(doc)}
+                >
+                  Editar
+                </button>
+                <button
+                  className="btn-eliminar"
+                  onClick={() => handleEliminar(doc.idDoctor)}
+                >
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </AdminLayout>
   );

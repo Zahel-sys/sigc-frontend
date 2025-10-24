@@ -3,11 +3,13 @@ import Login from "./pages/Login";
 import DashboardAdmin from "./pages/DashboardAdmin";
 import DashboardCliente from "./pages/DashboardCliente";
 import CitasCliente from "./pages/CitasCliente";
+import PerfilCliente from "./pages/PerfilCliente";
 import Especialidades from "./pages/Especialidades";
 import Turnos from "./pages/Turnos";
 import CitaConfirmada from "./pages/CitaConfirmada";
 import AdminEspecialidades from "./pages/AdminEspecialidades";
 import AdminDoctores from "./pages/AdminDoctores";
+import AdminHorarios from "./pages/AdminHorarios";
 import Registrar from "./pages/Registrar";
 import Home from "./pages/Home";
 import PrivateRoute from "./components/PrivateRoute";
@@ -16,9 +18,11 @@ function App() {
   return (
     <Router>
       <Routes>
+        {/* Ruta raíz - redirige al login */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
+
         {/* Página de inicio */}
         <Route path="/inicio" element={<Home />} />
-        <Route path="/" element={<Navigate to="/inicio" />} />
 
         {/* Login */}
         <Route path="/login" element={<Login />} />
@@ -30,7 +34,7 @@ function App() {
         <Route
           path="/admin"
           element={
-            <PrivateRoute>
+            <PrivateRoute requiredRole="ADMIN">
               <DashboardAdmin />
             </PrivateRoute>
           }
@@ -38,7 +42,7 @@ function App() {
         <Route
           path="/admin/especialidades"
           element={
-            <PrivateRoute>
+            <PrivateRoute requiredRole="ADMIN">
               <AdminEspecialidades />
             </PrivateRoute>
           }
@@ -46,8 +50,16 @@ function App() {
         <Route
           path="/admin/doctores"
           element={
-            <PrivateRoute>
+            <PrivateRoute requiredRole="ADMIN">
               <AdminDoctores />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/admin/horarios"
+          element={
+            <PrivateRoute requiredRole="ADMIN">
+              <AdminHorarios />
             </PrivateRoute>
           }
         />
@@ -56,7 +68,7 @@ function App() {
         <Route
           path="/cliente"
           element={
-            <PrivateRoute>
+            <PrivateRoute requiredRole="PACIENTE">
               <DashboardCliente />
             </PrivateRoute>
           }
@@ -64,8 +76,16 @@ function App() {
         <Route
           path="/cliente/citas"
           element={
-            <PrivateRoute>
+            <PrivateRoute requiredRole="PACIENTE">
               <CitasCliente />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/cliente/perfil"
+          element={
+            <PrivateRoute requiredRole="PACIENTE">
+              <PerfilCliente />
             </PrivateRoute>
           }
         />

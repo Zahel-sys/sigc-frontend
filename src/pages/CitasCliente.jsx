@@ -6,9 +6,39 @@ export default function CitasCliente() {
   const [citas, setCitas] = useState([]);
 
   const cargarCitas = async () => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    const res = await api.get(`/citas/usuario/${user.id}`);
-    setCitas(res.data);
+    try {
+      const usuario = JSON.parse(localStorage.getItem("usuario"));
+      const token = usuario?.token;
+      
+      if (!token) {
+        console.error("No hay token, no se pueden cargar las citas");
+        return;
+      }
+      
+      // ✅ Obtener datos del usuario desde /auth/me
+      const resUsuario = await api.get("/auth/me", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      
+      const idUsuario = resUsuario.data.idUsuario;
+      
+      if (!idUsuario) {
+        console.error("No se pudo obtener el ID del usuario");
+        return;
+      }
+      
+      const res = await api.get(`/citas/usuario/${idUsuario}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      setCitas(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error("Error al cargar citas:", err);
+      setCitas([]);
+    }
   };
 
   const cancelarCita = async (idCita) => {

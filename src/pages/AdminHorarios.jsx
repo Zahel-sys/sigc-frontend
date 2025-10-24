@@ -15,10 +15,16 @@ export default function AdminHorarios() {
   const [editando, setEditando] = useState(null);
 
   const cargarDatos = async () => {
-    const resHor = await api.get("/horarios");
-    const resDoc = await api.get("/doctores");
-    setHorarios(resHor.data);
-    setDoctores(resDoc.data);
+    try {
+      const resHor = await api.get("/horarios");
+      const resDoc = await api.get("/doctores");
+      setHorarios(Array.isArray(resHor.data) ? resHor.data : []);
+      setDoctores(Array.isArray(resDoc.data) ? resDoc.data : []);
+    } catch (error) {
+      console.error("Error al cargar datos:", error);
+      setHorarios([]);
+      setDoctores([]);
+    }
   };
 
   useEffect(() => {

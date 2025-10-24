@@ -26,10 +26,10 @@ export default function Login() {
 
         if (res.data.rol === "ADMIN") {
           showSuccess("Bienvenido Administrador", "Acceso concedido");
-          navigate("/admin/dashboard");
+          navigate("/admin");
         } else if (res.data.rol === "PACIENTE") {
           showSuccess("Inicio de sesión exitoso", "Bienvenido a SIGC");
-          navigate("/cliente/panel");
+          navigate("/cliente");
         } else {
           showWarning("Rol desconocido. Contacta al administrador.");
         }

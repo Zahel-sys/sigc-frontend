@@ -1,27 +1,32 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
-import Registrar from "./pages/Registrar";
 import DashboardAdmin from "./pages/DashboardAdmin";
 import DashboardCliente from "./pages/DashboardCliente";
 import CitasCliente from "./pages/CitasCliente";
 import Especialidades from "./pages/Especialidades";
-import PerfilCliente from "./pages/PerfilCliente";
-import AdminEspecialidades from "./pages/AdminEspecialidades";
-import AdminDoctores from "./pages/AdminDoctores";
-import AdminHorarios from "./pages/AdminHorarios";
 import Turnos from "./pages/Turnos";
 import CitaConfirmada from "./pages/CitaConfirmada";
+import AdminEspecialidades from "./pages/AdminEspecialidades";
+import AdminDoctores from "./pages/AdminDoctores";
+import Registrar from "./pages/Registrar";
+import Home from "./pages/Home";
 import PrivateRoute from "./components/PrivateRoute";
 
 function App() {
   return (
     <Router>
       <Routes>
-        {/* 🔹 LOGIN / REGISTRO */}
-        <Route path="/" element={<Login />} />
+        {/* Página de inicio */}
+        <Route path="/inicio" element={<Home />} />
+        <Route path="/" element={<Navigate to="/inicio" />} />
+
+        {/* Login */}
+        <Route path="/login" element={<Login />} />
+
+        {/* Registro */}
         <Route path="/registrar" element={<Registrar />} />
 
-        {/* 🔹 PANEL ADMINISTRADOR */}
+        {/* Panel del Administrador */}
         <Route
           path="/admin"
           element={
@@ -46,16 +51,8 @@ function App() {
             </PrivateRoute>
           }
         />
-        <Route
-          path="/admin/horarios"
-          element={
-            <PrivateRoute>
-              <AdminHorarios />
-            </PrivateRoute>
-          }
-        />
 
-        {/* 🔹 PANEL CLIENTE */}
+        {/* Panel del Cliente */}
         <Route
           path="/cliente"
           element={
@@ -72,33 +69,11 @@ function App() {
             </PrivateRoute>
           }
         />
-        <Route
-          path="/cliente/perfil"
-          element={
-            <PrivateRoute>
-              <PerfilCliente />
-            </PrivateRoute>
-          }
-        />
 
-        {/* 🔹 CATÁLOGO Y TURNOS */}
+        {/* Catálogo de Especialidades */}
         <Route path="/especialidades" element={<Especialidades />} />
-        <Route
-          path="/turnos/:idEspecialidad"
-          element={
-            <PrivateRoute>
-              <Turnos />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/cita-confirmada"
-          element={
-            <PrivateRoute>
-              <CitaConfirmada />
-            </PrivateRoute>
-          }
-        />
+        <Route path="/turnos/:idEspecialidad" element={<Turnos />} />
+        <Route path="/cita-confirmada" element={<CitaConfirmada />} />
       </Routes>
     </Router>
   );

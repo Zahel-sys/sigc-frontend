@@ -19,13 +19,23 @@ export default function AdminDoctores() {
   }, []);
 
   const cargarDoctores = async () => {
-    const res = await api.get("/doctores");
-    setDoctores(res.data);
+    try {
+      const res = await api.get("/doctores");
+      setDoctores(Array.isArray(res.data) ? res.data : []);
+    } catch (error) {
+      console.error("Error al cargar doctores:", error);
+      setDoctores([]);
+    }
   };
 
   const cargarEspecialidades = async () => {
-    const res = await api.get("/especialidades");
-    setEspecialidades(res.data);
+    try {
+      const res = await api.get("/especialidades");
+      setEspecialidades(Array.isArray(res.data) ? res.data : []);
+    } catch (error) {
+      console.error("Error al cargar especialidades:", error);
+      setEspecialidades([]);
+    }
   };
 
   const handleRegistrarOEditar = async (e) => {
@@ -42,27 +52,40 @@ export default function AdminDoctores() {
     formData.append("cupoPacientes", cupoPacientes);
     if (imagen) formData.append("imagen", imagen);
 
-    if (modoEdicion) {
-      await api.put(`/doctores/${doctorEditando}`, formData);
-      alert("✅ Doctor actualizado correctamente");
-      setModoEdicion(false);
-      setDoctorEditando(null);
-    } else {
-      await api.post("/doctores", formData);
-      alert("✅ Doctor registrado correctamente");
-    }
+    try {
+      if (modoEdicion) {
+        await api.put(`/doctores/${doctorEditando}`, formData);
+        alert("✅ Doctor actualizado correctamente");
+        setModoEdicion(false);
+        setDoctorEditando(null);
+      } else {
+        await api.post("/doctores", formData);
+        alert("✅ Doctor registrado correctamente");
+      }
 
-    setNombre("");
-    setEspecialidad("");
-    setCupoPacientes("");
-    setImagen(null);
-    cargarDoctores();
+      setNombre("");
+      setEspecialidad("");
+      setCupoPacientes("");
+      setImagen(null);
+      cargarDoctores();
+    } catch (error) {
+      console.error("Error al guardar doctor:", error);
+      const errorMsg = error.response?.data?.message || error.response?.data || "Error al guardar el doctor. Verifica que el backend esté funcionando correctamente.";
+      alert(`❌ Error: ${errorMsg}`);
+    }
   };
 
   const handleEliminar = async (id) => {
     if (window.confirm("¿Eliminar este doctor?")) {
-      await api.delete(`/doctores/${id}`);
-      cargarDoctores();
+      try {
+        await api.delete(`/doctores/${id}`);
+        alert("✅ Doctor eliminado correctamente");
+        cargarDoctores();
+      } catch (error) {
+        console.error("Error al eliminar doctor:", error);
+        const errorMsg = error.response?.data?.message || error.response?.data || "Error al eliminar el doctor.";
+        alert(`❌ Error: ${errorMsg}`);
+      }
     }
   };
 

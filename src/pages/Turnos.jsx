@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import PublicLayout from "../layouts/PublicLayout";
 import ClienteLayout from "../layouts/ClienteLayout";
 import api from "../services/api";
 import { showSuccess, showWarning, showError, showConfirm } from "../utils/alerts";
@@ -7,6 +8,7 @@ import { showSuccess, showWarning, showError, showConfirm } from "../utils/alert
 export default function Turnos() {
   const { idEspecialidad } = useParams();
   const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const [doctores, setDoctores] = useState([]);
   const [horarios, setHorarios] = useState([]);
@@ -15,16 +17,25 @@ export default function Turnos() {
 
   // 🩺 Cargar doctores filtrados por especialidad
   useEffect(() => {
+    // Verificar si el usuario está autenticado
+    const usuario = localStorage.getItem("usuario");
+    setIsAuthenticated(!!usuario);
+
     setCargando(true);
     api
       .get("/doctores")
       .then((res) => {
-        const filtrados = res.data.filter(
+        const datos = Array.isArray(res.data) ? res.data : [];
+        const filtrados = datos.filter(
           (d) =>
             d.especialidad.toLowerCase().trim() ===
             idEspecialidad.toLowerCase().trim()
         );
         setDoctores(filtrados);
+      })
+      .catch((error) => {
+        console.error("Error al cargar doctores:", error);
+        setDoctores([]);
       })
       .finally(() => setCargando(false));
   }, [idEspecialidad]);
@@ -36,47 +47,75 @@ export default function Turnos() {
     api
       .get("/horarios")
       .then((res) => {
-        const horariosFiltrados = res.data.filter(
+        const datos = Array.isArray(res.data) ? res.data : [];
+        const horariosFiltrados = datos.filter(
           (h) => h.doctor?.idDoctor === idDoctor && h.disponible
         );
         setHorarios(horariosFiltrados);
+      })
+      .catch((error) => {
+        console.error("Error al cargar horarios:", error);
+        setHorarios([]);
       })
       .finally(() => setCargando(false));
   };
 
   // 📅 Reservar cita
   const reservarCita = async (idHorario) => {
-    // ✅ Detectar usuario logueado con distintas claves posibles
-    const usuario =
-      JSON.parse(localStorage.getItem("usuario")) ||
-      JSON.parse(localStorage.getItem("user")) ||
-      JSON.parse(localStorage.getItem("paciente"));
-
-    if (!usuario || !usuario.idUsuario) {
-      showWarning("Debes iniciar sesión para agendar una cita.", "Sesión requerida");
-      return;
-    }
-
-    const confirmar = await showConfirm("¿Deseas confirmar esta cita?", "Confirmar reserva");
-    if (!confirmar) return;
-
-    const cita = {
-      paciente: { idUsuario: usuario.idUsuario },
-      horario: { idHorario },
-    };
-
     try {
-      await api.post("/citas", cita);
+      // ✅ Obtener usuario desde localStorage
+      const usuarioGuardado = JSON.parse(localStorage.getItem("usuario"));
+      
+      if (!usuarioGuardado || !usuarioGuardado.token) {
+        showWarning("Debes iniciar sesión para agendar una cita.", "Sesión requerida");
+        navigate("/login");
+        return;
+      }
+
+      // ✅ Obtener datos completos del usuario desde /auth/me
+      const resUsuario = await api.get("/auth/me", {
+        headers: {
+          Authorization: `Bearer ${usuarioGuardado.token}`
+        }
+      });
+
+      const usuario = resUsuario.data;
+
+      if (!usuario || !usuario.idUsuario) {
+        showWarning("No se pudo obtener tu información. Por favor, inicia sesión nuevamente.", "Error de sesión");
+        navigate("/login");
+        return;
+      }
+
+      const confirmar = await showConfirm("¿Deseas confirmar esta cita?", "Confirmar reserva");
+      if (!confirmar) return;
+
+      const cita = {
+        paciente: { idUsuario: usuario.idUsuario },
+        horario: { idHorario },
+      };
+
+      await api.post("/citas", cita, {
+        headers: {
+          Authorization: `Bearer ${usuarioGuardado.token}`
+        }
+      });
+      
       showSuccess("Cita agendada correctamente.", "Reserva exitosa");
       navigate("/cliente/citas");
+      
     } catch (err) {
       console.error("Error al agendar cita:", err);
-      showError(err.response?.data?.message || "No se pudo agendar la cita.");
+      console.error("Detalles del error:", err.response?.data || err.message);
+      showError(err.response?.data?.message || "No se pudo agendar la cita. Verifica tu conexión.");
     }
   };
 
+  // Usar el layout correcto según si está autenticado o no
+  const Layout = isAuthenticated ? ClienteLayout : PublicLayout;
+
   return (
-    <ClienteLayout>
+    <Layout>
       <div className="container mt-5">
         <h2 className="text-center mb-4 fw-bold text-green-700">
           🗓️ Turnos disponibles - {idEspecialidad}
@@ -202,6 +241,6 @@ export default function Turnos() {
           }
         `}
       </style>
-    </ClienteLayout>
+    </Layout>
   );
 }

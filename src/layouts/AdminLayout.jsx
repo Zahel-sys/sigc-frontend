@@ -1,13 +1,22 @@
 import { Link, useNavigate } from "react-router-dom";
 import { FaUserMd, FaCalendarAlt, FaClock, FaHome, FaSignOutAlt } from "react-icons/fa";
+import { showConfirm, showSuccess } from "../utils/alerts";
 import "../styles/AdminLayout.css";
 
 export default function AdminLayout({ children }) {
   const navigate = useNavigate();
 
-  const logout = () => {
-    localStorage.clear();
-    navigate("/");
+  const logout = async () => {
+    const confirmar = await showConfirm(
+      "¿Estás seguro de cerrar sesión?",
+      "Salir del sistema"
+    );
+    
+    if (confirmar) {
+      localStorage.clear();
+      showSuccess("Sesión cerrada", "Has cerrado sesión exitosamente");
+      navigate("/login");
+    }
   };
 
   return (

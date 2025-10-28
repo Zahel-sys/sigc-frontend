@@ -11,73 +11,15 @@ export default function DashboardCliente() {
 
   // 🧠 Obtener datos del usuario actual
   useEffect(() => {
-    const cargarDatos = async () => {
-      try {
-        const usuarioGuardado = JSON.parse(localStorage.getItem("usuario"));
-        console.log("📦 Usuario del localStorage:", usuarioGuardado);
-        
-        const token = usuarioGuardado?.token;
-        
-        if (!token) {
-          console.error("❌ No hay token, redirigiendo al login");
-          navigate("/login");
-          return;
-        }
-
-        // ✅ NUEVO: Usar endpoint /auth/me que no requiere ID
-        console.log("🔍 Obteniendo datos del usuario autenticado desde /auth/me");
-        
-        const resUsuario = await api.get("/auth/me", {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-        
-        console.log("✅ Datos recibidos del backend:", resUsuario.data);
-        setUsuario(resUsuario.data);
-        
-        // Cargar citas del usuario
-        try {
-          const resCitas = await api.get(`/citas/usuario/${resUsuario.data.idUsuario}`, {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          });
-          setCitas(Array.isArray(resCitas.data) ? resCitas.data : []);
-        } catch (err) {
-          console.warn("⚠️ No se pudieron cargar las citas:", err.message);
-          setCitas([]);
-        }
-        
-      } catch (err) {
-        console.error("❌ Error al cargar datos del dashboard:", err);
-        console.error("Detalles del error:", err.response?.data || err.message);
-        
-        if (err.response?.status === 401) {
-          console.error("Token inválido o expirado, limpiando sesión");
-          localStorage.clear();
-          navigate("/login");
-        } else {
-          // Si hay error, mostrar datos mínimos
-          const usuarioGuardado = JSON.parse(localStorage.getItem("usuario"));
-          if (usuarioGuardado) {
-            console.log("🔄 Usando datos del localStorage como fallback");
-            setUsuario({
-              nombre: "Usuario",
-              email: usuarioGuardado?.email || "Sin email",
-              rol: usuarioGuardado?.rol || "PACIENTE",
-              dni: "No disponible",
-              telefono: "No disponible"
-            });
-          }
-        }
-      }
-    };
-    cargarDatos();
-  }, [navigate]);
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user) {
+      api.get(`/usuarios/${user.id}`).then((res) => setUsuario(res.data));
+      api.get(`/citas/usuario/${user.id}`).then((res) => setCitas(res.data));
+    }
+  }, []);
 
   // 🗓️ Filtrar próximas citas
-  const citasActivas = Array.isArray(citas) ? citas.filter((c) => c.estado === "ACTIVA") : [];
+  const citasActivas = citas.filter((c) => c.estado === "ACTIVA");
 
   return (
     <ClienteLayout>
@@ -86,33 +28,16 @@ export default function DashboardCliente() {
 
         {/* 🧍 Información del usuario */}
         {usuario && (
-          <div className="card shadow-sm border-0 mb-4" style={{ 
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            color: 'white'
-          }}>
-            <div className="card-body">
-              <div className="row align-items-center">
-                <div className="col-auto">
-                  <FaUserCircle size={80} color="white" style={{ opacity: 0.9 }} />
-                </div>
-                <div className="col">
-                  <h4 className="mb-2 fw-bold">{usuario.nombre || "Usuario"}</h4>
-                  <p className="mb-2" style={{ opacity: 0.95 }}>
-                    <strong>📧 Email:</strong> {usuario.email || "Sin email"}
-                  </p>
-                  <div className="row">
-                    <div className="col-md-6">
-                      <p className="mb-0" style={{ opacity: 0.95 }}>
-                        <strong>🆔 DNI:</strong> {usuario.dni || "No registrado"}
-                      </p>
-                    </div>
-                    <div className="col-md-6">
-                      <p className="mb-0" style={{ opacity: 0.95 }}>
-                        <strong>📱 Teléfono:</strong> {usuario.telefono || "No registrado"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+          <div className="card shadow-sm border-0 mb-4">
+            <div className="card-body d-flex align-items-center">
+              <FaUserCircle size={70} color="#20c997" className="me-3" />
+              <div>
+                <h5 className="mb-1 fw-bold">{usuario.nombre}</h5>
+                <p className="mb-1 text-muted">{usuario.email}</p>
+                <p className="mb-1">
+                  <strong>DNI:</strong> {usuario.dni} &nbsp; | &nbsp;
+                  <strong>Teléfono:</strong> {usuario.telefono}
+                </p>
               </div>
             </div>
           </div>
@@ -122,99 +47,39 @@ export default function DashboardCliente() {
         <div className="row g-4 mb-4">
           <div className="col-md-4">
             <div
-              className="card dashboard-card border-0 shadow-sm h-100"
+              className="card dashboard-card"
               onClick={() => navigate("/cliente/citas")}
-              style={{ cursor: 'pointer', transition: 'all 0.3s ease' }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-5px)';
-                e.currentTarget.style.boxShadow = '0 8px 20px rgba(32, 201, 151, 0.3)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
-              }}
             >
-              <div className="card-body text-center p-4">
-                <div className="mb-3" style={{ 
-                  width: '70px', 
-                  height: '70px', 
-                  margin: '0 auto',
-                  background: 'linear-gradient(135deg, #20c997, #17a589)',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <FaCalendarAlt size={35} color="white" />
-                </div>
-                <h5 className="fw-bold mb-2">Mis Citas</h5>
-                <p className="text-muted small mb-0">Ver o cancelar tus citas</p>
+              <div className="card-body text-center">
+                <FaCalendarAlt size={40} className="text-success mb-2" />
+                <h5 className="fw-bold">Mis Citas</h5>
+                <p className="text-muted small">Ver o cancelar tus citas</p>
               </div>
             </div>
           </div>
 
           <div className="col-md-4">
             <div
-              className="card dashboard-card border-0 shadow-sm h-100"
+              className="card dashboard-card"
               onClick={() => navigate("/especialidades")}
-              style={{ cursor: 'pointer', transition: 'all 0.3s ease' }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-5px)';
-                e.currentTarget.style.boxShadow = '0 8px 20px rgba(220, 53, 69, 0.3)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
-              }}
             >
-              <div className="card-body text-center p-4">
-                <div className="mb-3" style={{ 
-                  width: '70px', 
-                  height: '70px', 
-                  margin: '0 auto',
-                  background: 'linear-gradient(135deg, #dc3545, #c82333)',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <FaHeartbeat size={35} color="white" />
-                </div>
-                <h5 className="fw-bold mb-2">Especialidades</h5>
-                <p className="text-muted small mb-0">Reserva tu próxima cita médica</p>
+              <div className="card-body text-center">
+                <FaHeartbeat size={40} className="text-danger mb-2" />
+                <h5 className="fw-bold">Especialidades</h5>
+                <p className="text-muted small">Reserva tu próxima cita médica</p>
               </div>
             </div>
           </div>
 
           <div className="col-md-4">
             <div
-              className="card dashboard-card border-0 shadow-sm h-100"
+              className="card dashboard-card"
               onClick={() => navigate("/cliente/perfil")}
-              style={{ cursor: 'pointer', transition: 'all 0.3s ease' }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-5px)';
-                e.currentTarget.style.boxShadow = '0 8px 20px rgba(13, 110, 253, 0.3)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
-              }}
             >
-              <div className="card-body text-center p-4">
-                <div className="mb-3" style={{ 
-                  width: '70px', 
-                  height: '70px', 
-                  margin: '0 auto',
-                  background: 'linear-gradient(135deg, #0d6efd, #0a58ca)',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <FaClipboardList size={35} color="white" />
-                </div>
-                <h5 className="fw-bold mb-2">Mi Perfil</h5>
-                <p className="text-muted small mb-0">Edita tus datos personales</p>
+              <div className="card-body text-center">
+                <FaClipboardList size={40} className="text-primary mb-2" />
+                <h5 className="fw-bold">Mi Perfil</h5>
+                <p className="text-muted small">Edita tus datos personales</p>
               </div>
             </div>
           </div>
@@ -222,33 +87,22 @@ export default function DashboardCliente() {
 
         {/* 📅 Próximas citas */}
         <div className="card shadow-sm border-0">
-          <div className="card-header text-white fw-semibold" style={{
-            background: 'linear-gradient(135deg, #20c997, #17a589)',
-            padding: '1rem 1.5rem'
-          }}>
-            <FaCalendarAlt className="me-2" />
+          <div className="card-header bg-success text-white fw-semibold">
             Próximas Citas Activas
           </div>
-          <div className="card-body p-4">
+          <div className="card-body">
             {citasActivas.length === 0 ? (
-              <div className="text-center py-5">
-                <FaCalendarAlt size={50} color="#dee2e6" className="mb-3" />
-                <p className="text-muted m-0">No tienes citas activas actualmente.</p>
-                <button 
-                  className="btn btn-success mt-3"
-                  onClick={() => navigate("/especialidades")}
-                >
-                  Reservar una cita
-                </button>
-              </div>
+              <p className="text-muted text-center m-0">
+                No tienes citas activas actualmente.
+              </p>
             ) : (
               <div className="table-responsive">
-                <table className="table table-hover align-middle">
-                  <thead style={{ backgroundColor: '#f8f9fa' }}>
+                <table className="table table-striped align-middle text-center">
+                  <thead className="table-light">
                     <tr>
-                      <th className="border-0">Doctor</th>
-                      <th className="border-0">Especialidad</th>
-                      <th className="border-0">Fecha</th>
+                      <th>Doctor</th>
+                      <th>Especialidad</th>
+                      <th>Fecha</th>
                       <th>Hora</th>
                       <th>Estado</th>
                     </tr>

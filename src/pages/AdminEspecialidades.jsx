@@ -11,12 +11,9 @@ export default function AdminEspecialidades() {
   const cargarEspecialidades = async () => {
     try {
       const res = await api.get("/especialidades");
-      // Asegurarse de que sea un array
-      const datos = Array.isArray(res.data) ? res.data : [];
-      setEspecialidades(datos);
+      setEspecialidades(res.data);
     } catch (error) {
       console.error("Error al cargar especialidades:", error);
-      setEspecialidades([]);
     }
   };
 
@@ -70,21 +67,6 @@ export default function AdminEspecialidades() {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Validar tipo de archivo
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-    if (!validTypes.includes(file.type)) {
-      alert("Solo se permiten archivos de imagen (JPG, PNG, GIF, WEBP)");
-      e.target.value = ''; // Limpiar input
-      return;
-    }
-
-    // Validar tamaño (máx 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      alert("La imagen no puede superar los 5MB");
-      e.target.value = '';
-      return;
-    }
-
     const data = new FormData();
     data.append("file", file);
 
@@ -92,16 +74,11 @@ export default function AdminEspecialidades() {
       const res = await api.post("/uploads", data, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      
-      // El backend puede retornar solo la URL como string o un objeto
-      const imageUrl = typeof res.data === 'string' ? res.data : res.data.url || res.data.path;
-      
-      setForm({ ...form, imagen: imageUrl });
-      console.log("Imagen subida exitosamente:", imageUrl);
+      // Guarda la URL devuelta por el backend
+      setForm({ ...form, imagen: res.data });
     } catch (error) {
       console.error("Error al subir imagen:", error);
-      const errorMsg = error.response?.data?.message || error.response?.data || "No se pudo subir la imagen. Verifica que el backend tenga el endpoint /uploads configurado.";
-      alert(`Error al subir imagen: ${errorMsg}`);
+      alert("No se pudo subir la imagen.");
     }
   };
 

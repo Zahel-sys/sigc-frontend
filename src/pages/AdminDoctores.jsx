@@ -23,7 +23,6 @@ export default function AdminDoctores() {
       const res = await api.get("/doctores");
       setDoctores(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
-      console.error("Error al cargar doctores:", error);
       setDoctores([]);
     }
   };
@@ -33,7 +32,6 @@ export default function AdminDoctores() {
       const res = await api.get("/especialidades");
       setEspecialidades(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
-      console.error("Error al cargar especialidades:", error);
       setEspecialidades([]);
     }
   };
@@ -62,16 +60,13 @@ export default function AdminDoctores() {
         await api.post("/doctores", formData);
         alert("✅ Doctor registrado correctamente");
       }
-
       setNombre("");
       setEspecialidad("");
       setCupoPacientes("");
       setImagen(null);
       cargarDoctores();
     } catch (error) {
-      console.error("Error al guardar doctor:", error);
-      const errorMsg = error.response?.data?.message || error.response?.data || "Error al guardar el doctor. Verifica que el backend esté funcionando correctamente.";
-      alert(`❌ Error: ${errorMsg}`);
+      alert("Error al guardar el doctor");
     }
   };
 
@@ -82,9 +77,7 @@ export default function AdminDoctores() {
         alert("✅ Doctor eliminado correctamente");
         cargarDoctores();
       } catch (error) {
-        console.error("Error al eliminar doctor:", error);
-        const errorMsg = error.response?.data?.message || error.response?.data || "Error al eliminar el doctor.";
-        alert(`❌ Error: ${errorMsg}`);
+        alert("Error al eliminar doctor");
       }
     }
   };
@@ -111,8 +104,7 @@ export default function AdminDoctores() {
   return (
     <AdminLayout>
       <div className="admin-doctores-container">
-        <h1 className="titulo-admin"> Gestión de Doctores</h1>
-
+        <h1 className="titulo-admin">Gestión de Doctores</h1>
         <form className="form-doctor" onSubmit={handleRegistrarOEditar}>
           <input
             type="text"
@@ -141,7 +133,6 @@ export default function AdminDoctores() {
           <button type="submit" className={modoEdicion ? "btn-actualizar" : ""}>
             {modoEdicion ? "Actualizar" : "Registrar"}
           </button>
-
           {modoEdicion && (
             <button
               type="button"
@@ -152,12 +143,15 @@ export default function AdminDoctores() {
             </button>
           )}
         </form>
-
         <div className="cards-container">
           {doctores.map((doc) => (
             <div key={doc.idDoctor} className="card-doctor">
               <img
-                src={`http://localhost:8080${doc.imagen}`}
+                src={
+                  doc.imagen
+                    ? `http://localhost:8080/doctores/imagen/${doc.imagen}`
+                    : "https://via.placeholder.com/200x250?text=Sin+Foto"
+                }
                 alt={doc.nombre}
                 className="doctor-img"
               />
@@ -168,7 +162,6 @@ export default function AdminDoctores() {
               <p>
                 <strong>Cupo:</strong> {doc.cupoPacientes} pacientes
               </p>
-
               <div className="acciones">
                 <button
                   className="btn-editar"

@@ -7,11 +7,10 @@ export default function AdminEspecialidades() {
   const [form, setForm] = useState({ nombre: "", descripcion: "", imagen: "" });
   const [editando, setEditando] = useState(null);
 
-  // 🧠 Cargar todas las especialidades desde el backend
+  // Cargar especialidades desde backend
   const cargarEspecialidades = async () => {
     try {
       const res = await api.get("/especialidades");
-      // Asegurarse de que sea un array
       const datos = Array.isArray(res.data) ? res.data : [];
       setEspecialidades(datos);
     } catch (error) {
@@ -24,38 +23,40 @@ export default function AdminEspecialidades() {
     cargarEspecialidades();
   }, []);
 
-  // 🧾 Crear o actualizar una especialidad
+  // Crear o editar especialidad
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
       if (editando) {
         await api.put(`/especialidades/${editando}`, form);
       } else {
         await api.post("/especialidades", form);
       }
-
       setForm({ nombre: "", descripcion: "", imagen: "" });
       setEditando(null);
       cargarEspecialidades();
     } catch (error) {
       console.error("Error al guardar especialidad:", error);
+      const msg = error.response?.data?.error || error.response?.data?.message || "No se pudo guardar.";
+      alert(`Error: ${msg}`);
     }
   };
 
-  // 🗑️ Eliminar especialidad
+  // Eliminar especialidad
   const eliminarEspecialidad = async (id) => {
-    if (confirm("¿Eliminar esta especialidad?")) {
+    if (window.confirm("¿Eliminar esta especialidad?")) {
       try {
         await api.delete(`/especialidades/${id}`);
         cargarEspecialidades();
       } catch (error) {
         console.error("Error al eliminar especialidad:", error);
+        const msg = error.response?.data?.error || error.response?.data?.message || "No se pudo eliminar.";
+        alert(`Error: ${msg}`);
       }
     }
   };
 
-  // ✏️ Editar especialidad (cargar al formulario)
+  // Editar especialidad (cargar datos al formulario)
   const editarEspecialidad = (esp) => {
     setForm({
       nombre: esp.nombre,
@@ -65,23 +66,20 @@ export default function AdminEspecialidades() {
     setEditando(esp.idEspecialidad);
   };
 
-  // 📁 Subir imagen al backend
+  // Subir imagen al backend
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Validar tipo de archivo
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
     if (!validTypes.includes(file.type)) {
       alert("Solo se permiten archivos de imagen (JPG, PNG, GIF, WEBP)");
-      e.target.value = ''; // Limpiar input
+      e.target.value = "";
       return;
     }
-
-    // Validar tamaño (máx 5MB)
     if (file.size > 5 * 1024 * 1024) {
       alert("La imagen no puede superar los 5MB");
-      e.target.value = '';
+      e.target.value = "";
       return;
     }
 
@@ -92,15 +90,11 @@ export default function AdminEspecialidades() {
       const res = await api.post("/uploads", data, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      
-      // El backend puede retornar solo la URL como string o un objeto
-      const imageUrl = typeof res.data === 'string' ? res.data : res.data.url || res.data.path;
-      
-      setForm({ ...form, imagen: imageUrl });
+      const imageUrl = res.data.url; // Por ejemplo: "/images/especialidades/xxxx.jpg"
+      setForm({ ...form, imagen: imageUrl.split("/").pop() }); // Solo guarda "xxxx.jpg"
       console.log("Imagen subida exitosamente:", imageUrl);
     } catch (error) {
-      console.error("Error al subir imagen:", error);
-      const errorMsg = error.response?.data?.message || error.response?.data || "No se pudo subir la imagen. Verifica que el backend tenga el endpoint /uploads configurado.";
+      const errorMsg = error.response?.data?.error || error.response?.data?.message || error.message;
       alert(`Error al subir imagen: ${errorMsg}`);
     }
   };
@@ -108,7 +102,6 @@ export default function AdminEspecialidades() {
   return (
     <AdminLayout>
       <h3 className="mb-4">Gestión de Especialidades</h3>
-
       {/* Formulario */}
       <form onSubmit={handleSubmit} className="mb-4" encType="multipart/form-data">
         <div className="row g-2">
@@ -122,7 +115,6 @@ export default function AdminEspecialidades() {
               required
             />
           </div>
-
           <div className="col-md-4">
             <input
               type="text"
@@ -133,7 +125,6 @@ export default function AdminEspecialidades() {
               required
             />
           </div>
-
           <div className="col-md-3">
             <input
               type="file"
@@ -142,7 +133,6 @@ export default function AdminEspecialidades() {
               onChange={handleFileUpload}
             />
           </div>
-
           <div className="col-md-2 d-grid">
             <button className="btn btn-primary">
               {editando ? "Actualizar" : "Agregar"}
@@ -150,7 +140,6 @@ export default function AdminEspecialidades() {
           </div>
         </div>
       </form>
-
       {/* Tabla de especialidades */}
       <div className="table-responsive">
         <table className="table table-striped table-hover align-middle">
@@ -170,11 +159,7 @@ export default function AdminEspecialidades() {
                 <td>
                   {esp.imagen ? (
                     <img
-                      src={
-                        esp.imagen?.startsWith("http")
-                          ? esp.imagen
-                          : `http://localhost:8080${esp.imagen}`
-                      }
+                      src={`http://localhost:8080/images/especialidades/${esp.imagen}`}
                       alt={esp.nombre}
                       style={{
                         width: "70px",

@@ -18,7 +18,6 @@ export default function Especialidades() {
     const fetchEspecialidades = async () => {
       try {
         const res = await api.get("/especialidades");
-        // Asegurarse de que sea un array
         const datos = Array.isArray(res.data) ? res.data : [];
         setEspecialidades(datos);
       } catch (err) {
@@ -48,11 +47,19 @@ export default function Especialidades() {
           {especialidades.map((esp) => (
             <div key={esp.idEspecialidad} className="card-especialidad">
               <div className="img-wrapper">
-                <img
-                  src={`http://localhost:8080${esp.imagen}`}
-                  alt={esp.nombre}
-                  className="img-especialidad"
-                />
+                {esp.imagen ? (
+                  <img
+                    src={`http://localhost:8080/images/especialidades/${esp.imagen}`}
+                    alt={esp.nombre}
+                    className="img-especialidad"
+                  />
+                ) : (
+                  <img
+                    src="https://via.placeholder.com/200x150?text=Sin+Foto"
+                    alt="Sin imagen"
+                    className="img-especialidad"
+                  />
+                )}
               </div>
               <h3>{esp.nombre}</h3>
               <p>{esp.descripcion}</p>

@@ -106,6 +106,7 @@ export default function AdminEspecialidades() {
       <form onSubmit={handleSubmit} className="mb-4" encType="multipart/form-data">
         <div className="row g-2">
           <div className="col-md-3">
+            <label className="form-label">Especialidad</label>
             <input
               type="text"
               className="form-control"
@@ -116,6 +117,7 @@ export default function AdminEspecialidades() {
             />
           </div>
           <div className="col-md-4">
+            <label className="form-label">Descripción</label>
             <input
               type="text"
               className="form-control"
@@ -126,6 +128,7 @@ export default function AdminEspecialidades() {
             />
           </div>
           <div className="col-md-3">
+            <label className="form-label">Imagen</label>
             <input
               type="file"
               className="form-control"
@@ -133,8 +136,8 @@ export default function AdminEspecialidades() {
               onChange={handleFileUpload}
             />
           </div>
-          <div className="col-md-2 d-grid">
-            <button className="btn btn-primary">
+          <div className="col-md-2">
+            <button className="btn btn-primary w-100" style={{ marginTop: "32px" }}>
               {editando ? "Actualizar" : "Agregar"}
             </button>
           </div>

@@ -106,31 +106,43 @@ export default function AdminDoctores() {
       <div className="admin-doctores-container">
         <h1 className="titulo-admin">Gestión de Doctores</h1>
         <form className="form-doctor" onSubmit={handleRegistrarOEditar}>
-          <input
-            type="text"
-            placeholder="Nombre del doctor"
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
-          />
-          <select
-            value={especialidad}
-            onChange={(e) => setEspecialidad(e.target.value)}
-          >
-            <option value="">Seleccionar especialidad</option>
-            {especialidades.map((esp) => (
-              <option key={esp.idEspecialidad} value={esp.nombre}>
-                {esp.nombre}
-              </option>
-            ))}
-          </select>
-          <input
-            type="number"
-            placeholder="Cupo"
-            value={cupoPacientes}
-            onChange={(e) => setCupoPacientes(e.target.value)}
-          />
-          <input type="file" onChange={(e) => setImagen(e.target.files[0])} />
-          <button type="submit" className={modoEdicion ? "btn-actualizar" : ""}>
+          <div className="form-field">
+            <label>Doctor</label>
+            <input
+              type="text"
+              placeholder="Nombre del doctor"
+              value={nombre}
+              onChange={(e) => setNombre(e.target.value)}
+            />
+          </div>
+          <div className="form-field">
+            <label>Especialidad</label>
+            <select
+              value={especialidad}
+              onChange={(e) => setEspecialidad(e.target.value)}
+            >
+              <option value="">Seleccionar especialidad</option>
+              {especialidades.map((esp) => (
+                <option key={esp.idEspecialidad} value={esp.nombre}>
+                  {esp.nombre}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="form-field">
+            <label>Cantidad</label>
+            <input
+              type="number"
+              placeholder="Cantidad disponible"
+              value={cupoPacientes}
+              onChange={(e) => setCupoPacientes(e.target.value)}
+            />
+          </div>
+          <div className="form-field">
+            <label>Imagen</label>
+            <input type="file" onChange={(e) => setImagen(e.target.files[0])} style={{ height: "44px" }} />
+          </div>
+          <button type="submit" className={modoEdicion ? "btn-actualizar" : ""} style={{ marginTop: "28px", alignSelf: "flex-end" }}>
             {modoEdicion ? "Actualizar" : "Registrar"}
           </button>
           {modoEdicion && (
@@ -160,7 +172,7 @@ export default function AdminDoctores() {
                 <strong>Especialidad:</strong> {doc.especialidad}
               </p>
               <p>
-                <strong>Cupo:</strong> {doc.cupoPacientes} pacientes
+                <strong>Cantidad disponible:</strong> {doc.cupoPacientes} pacientes
               </p>
               <div className="acciones">
                 <button

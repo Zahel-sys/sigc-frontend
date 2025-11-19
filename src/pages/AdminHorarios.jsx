@@ -69,6 +69,7 @@ export default function AdminHorarios() {
       <form onSubmit={handleSubmit} className="mb-4">
         <div className="row g-2">
           <div className="col-md-2">
+            <label className="form-label">Fecha de Atención</label>
             <input
               type="date"
               className="form-control"
@@ -78,19 +79,21 @@ export default function AdminHorarios() {
             />
           </div>
           <div className="col-md-2">
+            <label className="form-label">Turno</label>
             <select
               className="form-select"
               value={form.turno}
               onChange={(e) => setForm({ ...form, turno: e.target.value })}
               required
             >
-              <option value="">Turno</option>
+              <option value="">Seleccionar turno</option>
               <option value="Mañana">Mañana</option>
               <option value="Tarde">Tarde</option>
               <option value="Noche">Noche</option>
             </select>
           </div>
           <div className="col-md-2">
+            <label className="form-label">Hora de Inicio</label>
             <input
               type="time"
               className="form-control"
@@ -100,6 +103,7 @@ export default function AdminHorarios() {
             />
           </div>
           <div className="col-md-2">
+            <label className="form-label">Hora de Cierre</label>
             <input
               type="time"
               className="form-control"
@@ -109,6 +113,7 @@ export default function AdminHorarios() {
             />
           </div>
           <div className="col-md-3">
+            <label className="form-label">Doctor Asignado</label>
             <select
               className="form-select"
               value={form.doctor.idDoctor}
@@ -125,8 +130,8 @@ export default function AdminHorarios() {
               ))}
             </select>
           </div>
-          <div className="col-md-1 d-grid">
-            <button className="btn btn-primary">
+          <div className="col-md-1">
+            <button className="btn btn-primary w-100" style={{ marginTop: "32px" }}>
               {editando ? "Actualizar" : "Agregar"}
             </button>
           </div>

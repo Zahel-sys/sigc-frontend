@@ -28,28 +28,28 @@ export default function DashboardAdmin() {
   return (
     <AdminLayout>
       <h3 className="mb-4">Resumen General</h3>
-      <div className="row">
-        <div className="col-md-4 mb-3">
+      <div style={{ display: "flex", gap: "-8px", width: "100%" }}>
+        <div style={{ width: "23%", marginRight: "-8px" }}>
           <div className="card text-center shadow-sm">
-            <div className="card-body">
-              <h4>{resumen.doctores}</h4>
-              <p className="text-muted">Doctores Registrados</p>
+            <div className="card-body p-2">
+              <h4 className="mb-1">{resumen.doctores}</h4>
+              <p className="text-muted mb-0 small">Doctores Registrados</p>
             </div>
           </div>
         </div>
-        <div className="col-md-4 mb-3">
+        <div style={{ width: "23%", marginRight: "-8px" }}>
           <div className="card text-center shadow-sm">
-            <div className="card-body">
-              <h4>{resumen.especialidades}</h4>
-              <p className="text-muted">Especialidades</p>
+            <div className="card-body p-2">
+              <h4 className="mb-1">{resumen.especialidades}</h4>
+              <p className="text-muted mb-0 small">Especialidades</p>
             </div>
           </div>
         </div>
-        <div className="col-md-4 mb-3">
+        <div style={{ width: "23%" }}>
           <div className="card text-center shadow-sm">
-            <div className="card-body">
-              <h4>{resumen.citas}</h4>
-              <p className="text-muted">Citas Totales</p>
+            <div className="card-body p-2">
+              <h4 className="mb-1">{resumen.citas}</h4>
+              <p className="text-muted mb-0 small">Citas Totales</p>
             </div>
           </div>
         </div>

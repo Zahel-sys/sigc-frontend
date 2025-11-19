@@ -13,6 +13,15 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+}
+
 a {
   font-weight: 500;
   color: #646cff;
@@ -24,6 +33,7 @@ a:hover {
 
 body {
   margin: 0;
+  padding: 0;
   display: flex;
   place-items: center;
   min-width: 320px;
@@ -31,27 +41,100 @@ body {
 }
 
 h1 {
-  font-size: 3.2em;
+  font-size: clamp(1.5em, 5vw, 3.2em);
   line-height: 1.1;
+}
+
+h2 {
+  font-size: clamp(1.3em, 4vw, 2.4em);
+}
+
+h3 {
+  font-size: clamp(1.1em, 3vw, 1.8em);
 }
 
 button {
   border-radius: 8px;
   border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
+  padding: clamp(0.4em, 1vw, 0.6em) clamp(0.8em, 2vw, 1.2em);
+  font-size: clamp(0.85em, 1vw, 1em);
   font-weight: 500;
   font-family: inherit;
   background-color: #1a1a1a;
   cursor: pointer;
   transition: border-color 0.25s;
 }
+
 button:hover {
   border-color: #646cff;
 }
+
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
+}
+
+input, select, textarea {
+  font-size: clamp(0.85em, 1vw, 1em);
+  padding: clamp(0.4em, 1vw, 0.6em);
+}
+
+table {
+  width: 100%;
+  table-layout: auto;
+  overflow-x: auto;
+}
+
+@media (max-width: 768px) {
+  body {
+    place-items: flex-start;
+  }
+
+  h1 {
+    font-size: 1.8em;
+  }
+
+  h2 {
+    font-size: 1.4em;
+  }
+
+  h3 {
+    font-size: 1.2em;
+  }
+
+  button {
+    padding: 0.5em 1em;
+    font-size: 0.9em;
+  }
+
+  input, select, textarea {
+    font-size: 0.95em;
+    padding: 0.5em;
+  }
+}
+
+@media (max-width: 576px) {
+  h1 {
+    font-size: 1.5em;
+  }
+
+  h2 {
+    font-size: 1.2em;
+  }
+
+  h3 {
+    font-size: 1.1em;
+  }
+
+  button {
+    padding: 0.4em 0.8em;
+    font-size: 0.85em;
+  }
+
+  input, select, textarea {
+    font-size: 0.9em;
+    padding: 0.4em;
+  }
 }
 
 @media (prefers-color-scheme: light) {

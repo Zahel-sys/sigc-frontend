@@ -102,14 +102,14 @@ export default function DashboardCliente() {
                   </p>
                   <div className="row">
                     <div className="col-md-6">
-                      <p className="mb-0" style={{ opacity: 0.95 }}>
-                        <strong>🆔 DNI:</strong> {usuario.dni || "No registrado"}
-                      </p>
+                      <div style={{ opacity: 0.95 }}>
+                        <strong>DNI:</strong> {usuario.dni || "No registrado"}
+                      </div>
                     </div>
                     <div className="col-md-6">
-                      <p className="mb-0" style={{ opacity: 0.95 }}>
-                        <strong>📱 Teléfono:</strong> {usuario.telefono || "No registrado"}
-                      </p>
+                      <div style={{ opacity: 0.95 }}>
+                        <strong>Teléfono:</strong> {usuario.telefono || "No registrado"}
+                      </div>
                     </div>
                   </div>
                 </div>

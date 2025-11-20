@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { FaHome, FaUserMd, FaSignInAlt } from "react-icons/fa";
 import "../styles/PublicLayout.css";
 
 export default function PublicLayout({ children }) {
@@ -13,15 +12,6 @@ export default function PublicLayout({ children }) {
         </div>
 
         <div className="navbar-links">
-          <Link to="/" className="nav-link">
-            <FaHome /> Inicio
-          </Link>
-          <Link to="/especialidades" className="nav-link">
-            <FaUserMd /> Especialidades
-          </Link>
-          <Link to="/login" className="nav-link btn-login">
-            <FaSignInAlt /> Iniciar Sesión
-          </Link>
         </div>
       </nav>
 

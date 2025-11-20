@@ -12,7 +12,13 @@ export default function PerfilCliente() {
     dni: "", 
     telefono: "" 
   });
+  const [contrasena, setContrasena] = useState({
+    actual: "",
+    nueva: "",
+    confirmar: ""
+  });
   const [loading, setLoading] = useState(true);
+  const [loadingContrasena, setLoadingContrasena] = useState(false);
 
   useEffect(() => {
     const fetchUsuario = async () => {
@@ -74,6 +80,73 @@ export default function PerfilCliente() {
     }
   };
 
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+
+    // Validaciones
+    if (!contrasena.actual.trim()) {
+      showWarning("Ingresa tu contraseña actual");
+      return;
+    }
+
+    if (!contrasena.nueva.trim()) {
+      showWarning("Ingresa una nueva contraseña");
+      return;
+    }
+
+    if (contrasena.nueva.length < 6) {
+      showWarning("La contraseña debe tener al menos 6 caracteres");
+      return;
+    }
+
+    if (contrasena.nueva !== contrasena.confirmar) {
+      showWarning("Las contraseñas no coinciden");
+      return;
+    }
+
+    if (contrasena.actual === contrasena.nueva) {
+      showWarning("La nueva contraseña debe ser diferente a la actual");
+      return;
+    }
+
+    setLoadingContrasena(true);
+    try {
+      const storedUser = JSON.parse(localStorage.getItem("usuario"));
+      const token = storedUser?.token;
+
+      const response = await api.post(
+        "/auth/cambiar-contrasena",
+        {
+          passwordActual: contrasena.actual,
+          passwordNueva: contrasena.nueva,
+          passwordConfirmar: contrasena.confirmar
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      showSuccess("Contraseña actualizada", "Tu contraseña se cambió correctamente. Por favor, inicia sesión nuevamente.");
+      
+      // Limpiar formulario
+      setContrasena({ actual: "", nueva: "", confirmar: "" });
+      
+      // Redirigir a login después de 2 segundos
+      setTimeout(() => {
+        localStorage.clear();
+        navigate("/login");
+      }, 2000);
+    } catch (err) {
+      console.error("Error al cambiar contraseña:", err);
+      const mensajeError = err.response?.data?.message || "No se pudo cambiar la contraseña. Verifica tu contraseña actual.";
+      showError(mensajeError);
+    } finally {
+      setLoadingContrasena(false);
+    }
+  };
+
   if (loading) {
     return (
       <ClienteLayout>
@@ -90,8 +163,9 @@ export default function PerfilCliente() {
     <ClienteLayout>
       <div className="container-fluid py-4">
         <div className="row">
-          <div className="col-12 col-md-10 col-lg-8">
-            <div className="card border-0 shadow-lg" style={{ borderRadius: '15px', overflow: 'hidden' }}>
+          {/* TARJETA 1: PERFIL */}
+          <div className="col-12 col-lg-6 mb-4 mb-lg-0">
+            <div className="card border-0 shadow-lg" style={{ borderRadius: '15px', overflow: 'hidden', height: '100%', width: '100%' }}>
               <div className="card-header text-white text-center py-4" 
                    style={{ 
                      background: 'linear-gradient(135deg, #20c997, #16a085)',
@@ -242,6 +316,156 @@ export default function PerfilCliente() {
                     >
                       <i className="fas fa-save me-2"></i>
                       Guardar Cambios
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          {/* TARJETA 2: CAMBIO DE CONTRASEÑA */}
+          <div className="col-12 col-lg-6">
+            <div className="card border-0 shadow-lg" style={{ borderRadius: '15px', overflow: 'hidden', height: '100%', width: '100%' }}>
+              <div className="card-header text-white text-center py-4" 
+                   style={{ 
+                     background: 'linear-gradient(135deg, #fd7e14, #dc5f32)',
+                     border: 'none'
+                   }}>
+                <div style={{ marginBottom: '10px' }}>
+                  <div style={{ 
+                    width: '80px', 
+                    height: '80px', 
+                    backgroundColor: 'rgba(255,255,255,0.2)', 
+                    borderRadius: '50%', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    margin: '0 auto 15px'
+                  }}>
+                    <i className="fas fa-lock" style={{ fontSize: '2.5rem', color: 'white' }}></i>
+                  </div>
+                </div>
+                <h3 className="mb-0" style={{ fontWeight: '600' }}>Cambiar Contraseña</h3>
+                <p className="mb-0 mt-2" style={{ opacity: 0.9, fontSize: '0.95rem' }}>Actualiza tu contraseña de forma segura</p>
+              </div>
+              
+              <div className="card-body p-4" style={{ backgroundColor: '#fafbfc' }}>
+                <form onSubmit={handleChangePassword}>
+                  <div className="mb-4">
+                    <label className="form-label fw-bold text-dark mb-2" style={{ fontSize: '0.95rem' }}>
+                      <i className="fas fa-key me-2 text-warning"></i>
+                      Contraseña Actual
+                    </label>
+                    <input
+                      type="password"
+                      className="form-control form-control-lg"
+                      style={{ 
+                        border: '2px solid #e9ecef', 
+                        borderRadius: '10px',
+                        backgroundColor: 'white',
+                        transition: 'all 0.3s ease'
+                      }}
+                      placeholder="Ingresa tu contraseña actual"
+                      value={contrasena.actual}
+                      onChange={(e) => setContrasena({ ...contrasena, actual: e.target.value })}
+                      onFocus={(e) => e.target.style.borderColor = '#fd7e14'}
+                      onBlur={(e) => e.target.style.borderColor = '#e9ecef'}
+                      required
+                    />
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="form-label fw-bold text-dark mb-2" style={{ fontSize: '0.95rem' }}>
+                      <i className="fas fa-lock me-2 text-warning"></i>
+                      Nueva Contraseña
+                    </label>
+                    <input
+                      type="password"
+                      className="form-control form-control-lg"
+                      style={{ 
+                        border: '2px solid #e9ecef', 
+                        borderRadius: '10px',
+                        backgroundColor: 'white',
+                        transition: 'all 0.3s ease'
+                      }}
+                      placeholder="Ingresa tu nueva contraseña"
+                      value={contrasena.nueva}
+                      onChange={(e) => setContrasena({ ...contrasena, nueva: e.target.value })}
+                      onFocus={(e) => e.target.style.borderColor = '#fd7e14'}
+                      onBlur={(e) => e.target.style.borderColor = '#e9ecef'}
+                      required
+                    />
+                    <small className="text-muted d-block mt-2">
+                      La contraseña debe tener al menos 6 caracteres
+                    </small>
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="form-label fw-bold text-dark mb-2" style={{ fontSize: '0.95rem' }}>
+                      <i className="fas fa-check-circle me-2 text-warning"></i>
+                      Confirmar Nueva Contraseña
+                    </label>
+                    <input
+                      type="password"
+                      className="form-control form-control-lg"
+                      style={{ 
+                        border: '2px solid #e9ecef', 
+                        borderRadius: '10px',
+                        backgroundColor: 'white',
+                        transition: 'all 0.3s ease'
+                      }}
+                      placeholder="Confirma tu nueva contraseña"
+                      value={contrasena.confirmar}
+                      onChange={(e) => setContrasena({ ...contrasena, confirmar: e.target.value })}
+                      onFocus={(e) => e.target.style.borderColor = '#fd7e14'}
+                      onBlur={(e) => e.target.style.borderColor = '#e9ecef'}
+                      required
+                    />
+                  </div>
+
+                  <div className="alert alert-info mb-4" role="alert">
+                    <i className="fas fa-info-circle me-2"></i>
+                    <strong>Nota:</strong> Por seguridad, tendrás que iniciar sesión nuevamente después de cambiar tu contraseña.
+                  </div>
+
+                  <div className="d-grid mt-4">
+                    <button 
+                      type="submit" 
+                      className="btn btn-lg py-3"
+                      disabled={loadingContrasena}
+                      style={{
+                        background: 'linear-gradient(135deg, #fd7e14, #dc5f32)',
+                        border: 'none',
+                        borderRadius: '12px',
+                        color: 'white',
+                        fontWeight: '600',
+                        fontSize: '1.1rem',
+                        boxShadow: '0 4px 15px rgba(253, 126, 20, 0.3)',
+                        transition: 'all 0.3s ease',
+                        opacity: loadingContrasena ? 0.7 : 1
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!loadingContrasena) {
+                          e.target.style.transform = 'translateY(-2px)';
+                          e.target.style.boxShadow = '0 6px 20px rgba(253, 126, 20, 0.4)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.transform = 'translateY(0px)';
+                        e.target.style.boxShadow = '0 4px 15px rgba(253, 126, 20, 0.3)';
+                      }}
+                    >
+                      {loadingContrasena ? (
+                        <>
+                          <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                          Actualizando...
+                        </>
+                      ) : (
+                        <>
+                          <i className="fas fa-shield-alt me-2"></i>
+                          Cambiar Contraseña
+                        </>
+                      )}
                     </button>
                   </div>
                 </form>

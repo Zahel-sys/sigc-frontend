@@ -88,10 +88,11 @@ export default function DashboardCliente() {
         {usuario && (
           <div className="card shadow-sm border-0 mb-4" style={{ 
             background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            color: 'white'
+            color: 'white',
+            width: '100%'
           }}>
             <div className="card-body">
-              <div className="row align-items-center">
+              <div className="row align-items-center" style={{width: '100%'}}>
                 <div className="col-auto">
                   <FaUserCircle size={80} color="white" style={{ opacity: 0.9 }} />
                 </div>
@@ -101,7 +102,7 @@ export default function DashboardCliente() {
                     <strong>📧 Email:</strong> {usuario.email || "Sin email"}
                   </p>
                   <div className="row">
-                    <div className="col-md-6">
+                    <div className="col-md-6" style={{width: '150px'}}>
                       <div style={{ opacity: 0.95 }}>
                         <strong>DNI:</strong> {usuario.dni || "No registrado"}
                       </div>
@@ -119,7 +120,7 @@ export default function DashboardCliente() {
         )}
 
         {/* 🔹 Tarjetas de acceso rápido */}
-        <div className="row g-4 mb-4">
+        <div className="row g-4 mb-4" style={{marginLeft: '70px'}}>
           <div className="col-md-4">
             <div
               className="card dashboard-card border-0 shadow-sm h-100"
@@ -221,7 +222,7 @@ export default function DashboardCliente() {
         </div>
 
         {/* 📅 Próximas citas */}
-        <div className="card shadow-sm border-0">
+        <div className="card shadow-sm border-0" style={{width: '100%'}}>
           <div className="card-header text-white fw-semibold" style={{
             background: 'linear-gradient(135deg, #20c997, #17a589)',
             padding: '1rem 1.5rem'

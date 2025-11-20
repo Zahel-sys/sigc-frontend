@@ -12,8 +12,6 @@ export default function Home() {
         <h2 className="logo">SIGC</h2>
         <p className="role">Bienvenido</p>
         <nav className="nav-menu">
-          <Link to="/">Inicio</Link>
-          <Link to="/login">Iniciar Sesión</Link>
           <Link to="/registrar">Registrarse</Link>
         </nav>
       </aside>

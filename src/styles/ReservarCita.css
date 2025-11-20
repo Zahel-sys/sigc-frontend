@@ -1,0 +1,164 @@
+/* ReservarCita.css - Estilos para el componente de reserva de citas */
+
+.reservar-cita-container {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 15px;
+  border-left: 4px solid #007bff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.horario-info {
+  background: white;
+  padding: 15px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  border: 1px solid #dee2e6;
+}
+
+.horario-info p {
+  margin: 8px 0;
+  font-size: 14px;
+  color: #333;
+}
+
+.horario-info strong {
+  color: #007bff;
+  min-width: 80px;
+  display: inline-block;
+  font-weight: 600;
+}
+
+.disponibilidad {
+  padding: 8px 12px;
+  border-radius: 4px;
+  background: #f0f0f0;
+  margin-top: 10px !important;
+  display: inline-block;
+}
+
+.disponible {
+  color: #28a745;
+  font-weight: bold;
+}
+
+.ocupado {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+.btn-reservar {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-reservar:hover:not(:disabled) {
+  background: linear-gradient(135deg, #0056b3, #003d82);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.btn-reservar:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-reservar:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.error-message {
+  background: #f8d7da;
+  color: #721c24;
+  padding: 12px;
+  border-radius: 6px;
+  margin-top: 15px;
+  border: 1px solid #f5c6cb;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: slideIn 0.3s ease;
+}
+
+.error-message span {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.success-message {
+  background: #d4edda;
+  color: #155724;
+  padding: 15px;
+  border-radius: 6px;
+  margin-top: 15px;
+  border: 1px solid #c3e6cb;
+  animation: slideIn 0.3s ease;
+}
+
+.success-message p {
+  margin: 8px 0;
+  font-size: 14px;
+}
+
+.success-message strong {
+  color: #004085;
+  font-weight: 600;
+}
+
+.success-message p:first-child {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+/* Animación de entrada */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .reservar-cita-container {
+    padding: 15px;
+    margin-top: 12px;
+  }
+
+  .horario-info {
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+
+  .horario-info p {
+    font-size: 13px;
+  }
+
+  .btn-reservar {
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  .error-message,
+  .success-message {
+    padding: 10px;
+    margin-top: 12px;
+    font-size: 13px;
+  }
+}

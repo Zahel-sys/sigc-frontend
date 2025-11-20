@@ -1,125 +1,108 @@
-import { useEffect, useState } from "react";
-import api from "../services/api";
+import { useState } from "react";
 import AdminLayout from "../layouts/AdminLayout";
+import { useDoctoresAdmin } from "../hooks/useGestionDoctores";
+import { THEME } from "../config/theme";
 import "../styles/AdminDoctores.css";
 
+/**
+ * Página Admin Gestión de Doctores
+ * Responsabilidad: Orquestar formulario y tabla de doctores
+ */
 export default function AdminDoctores() {
-  const [doctores, setDoctores] = useState([]);
-  const [especialidades, setEspecialidades] = useState([]);
-  const [nombre, setNombre] = useState("");
-  const [especialidad, setEspecialidad] = useState("");
-  const [cupoPacientes, setCupoPacientes] = useState("");
-  const [imagen, setImagen] = useState(null);
+  const { doctores, especialidades, loading, guardarDoctor, eliminarDoctor } = useDoctoresAdmin();
+
+  // Formulario
   const [modoEdicion, setModoEdicion] = useState(false);
   const [doctorEditando, setDoctorEditando] = useState(null);
+  const [formData, setFormData] = useState({
+    nombre: "",
+    especialidad: "",
+    cupoPacientes: "",
+    imagen: null
+  });
 
-  useEffect(() => {
-    cargarDoctores();
-    cargarEspecialidades();
-  }, []);
-
-  const cargarDoctores = async () => {
-    try {
-      const res = await api.get("/doctores");
-      setDoctores(Array.isArray(res.data) ? res.data : []);
-    } catch (error) {
-      setDoctores([]);
-    }
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const cargarEspecialidades = async () => {
-    try {
-      const res = await api.get("/especialidades");
-      setEspecialidades(Array.isArray(res.data) ? res.data : []);
-    } catch (error) {
-      setEspecialidades([]);
-    }
+  const handleChangeImagen = (e) => {
+    setFormData(prev => ({ ...prev, imagen: e.target.files[0] }));
   };
 
-  const handleRegistrarOEditar = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!nombre || !especialidad || !cupoPacientes) {
+    if (!formData.nombre || !formData.especialidad || !formData.cupoPacientes) {
       alert("Por favor completa todos los campos");
       return;
     }
 
-    const formData = new FormData();
-    formData.append("nombre", nombre);
-    formData.append("especialidad", especialidad);
-    formData.append("cupoPacientes", cupoPacientes);
-    if (imagen) formData.append("imagen", imagen);
+    const success = await guardarDoctor(formData, modoEdicion ? doctorEditando : null);
 
-    try {
-      if (modoEdicion) {
-        await api.put(`/doctores/${doctorEditando}`, formData);
-        alert("✅ Doctor actualizado correctamente");
-        setModoEdicion(false);
-        setDoctorEditando(null);
-      } else {
-        await api.post("/doctores", formData);
-        alert("✅ Doctor registrado correctamente");
-      }
-      setNombre("");
-      setEspecialidad("");
-      setCupoPacientes("");
-      setImagen(null);
-      cargarDoctores();
-    } catch (error) {
-      alert("Error al guardar el doctor");
-    }
-  };
-
-  const handleEliminar = async (id) => {
-    if (window.confirm("¿Eliminar este doctor?")) {
-      try {
-        await api.delete(`/doctores/${id}`);
-        alert("✅ Doctor eliminado correctamente");
-        cargarDoctores();
-      } catch (error) {
-        alert("Error al eliminar doctor");
-      }
+    if (success) {
+      setFormData({ nombre: "", especialidad: "", cupoPacientes: "", imagen: null });
+      setModoEdicion(false);
+      setDoctorEditando(null);
     }
   };
 
   const handleEditar = (doctor) => {
     setModoEdicion(true);
     setDoctorEditando(doctor.idDoctor);
-    setNombre(doctor.nombre);
-    setEspecialidad(doctor.especialidad);
-    setCupoPacientes(doctor.cupoPacientes);
-    setImagen(null);
+    setFormData({
+      nombre: doctor.nombre,
+      especialidad: doctor.especialidad,
+      cupoPacientes: doctor.cupoPacientes,
+      imagen: null
+    });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleCancelar = () => {
     setModoEdicion(false);
     setDoctorEditando(null);
-    setNombre("");
-    setEspecialidad("");
-    setCupoPacientes("");
-    setImagen(null);
+    setFormData({ nombre: "", especialidad: "", cupoPacientes: "", imagen: null });
   };
 
   return (
     <AdminLayout>
       <div className="admin-doctores-container">
-        <h1 className="titulo-admin">Gestión de Doctores</h1>
-        <form className="form-doctor" onSubmit={handleRegistrarOEditar}>
+        <h1 className="titulo-admin" style={{ color: THEME.primary.main }}>
+          <i className="fas fa-stethoscope me-2"></i>Gestión de Doctores
+        </h1>
+
+        {/* FORMULARIO */}
+        <form className="form-doctor" onSubmit={handleSubmit} style={{ backgroundColor: THEME.gray[50], borderRadius: THEME.borderRadius.lg }}>
           <div className="form-field">
-            <label>Doctor</label>
+            <label>Nombre del Doctor</label>
             <input
               type="text"
-              placeholder="Nombre del doctor"
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
+              name="nombre"
+              placeholder="Ej: Dr. Juan Pérez"
+              value={formData.nombre}
+              onChange={handleChange}
+              style={{
+                border: `2px solid ${THEME.gray[300]}`,
+                borderRadius: THEME.borderRadius.md,
+                padding: "0.75rem"
+              }}
+              required
             />
           </div>
+
           <div className="form-field">
             <label>Especialidad</label>
             <select
-              value={especialidad}
-              onChange={(e) => setEspecialidad(e.target.value)}
+              name="especialidad"
+              value={formData.especialidad}
+              onChange={handleChange}
+              style={{
+                border: `2px solid ${THEME.gray[300]}`,
+                borderRadius: THEME.borderRadius.md,
+                padding: "0.75rem"
+              }}
+              required
             >
               <option value="">Seleccionar especialidad</option>
               {especialidades.map((esp) => (
@@ -129,68 +112,180 @@ export default function AdminDoctores() {
               ))}
             </select>
           </div>
+
           <div className="form-field">
-            <label>Cantidad</label>
+            <label>Cantidad de Pacientes</label>
             <input
               type="number"
-              placeholder="Cantidad disponible"
-              value={cupoPacientes}
-              onChange={(e) => setCupoPacientes(e.target.value)}
+              name="cupoPacientes"
+              placeholder="Ej: 10"
+              value={formData.cupoPacientes}
+              onChange={handleChange}
+              style={{
+                border: `2px solid ${THEME.gray[300]}`,
+                borderRadius: THEME.borderRadius.md,
+                padding: "0.75rem"
+              }}
+              required
             />
           </div>
+
           <div className="form-field">
             <label>Imagen</label>
-            <input type="file" onChange={(e) => setImagen(e.target.files[0])} style={{ height: "44px" }} />
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleChangeImagen}
+              style={{
+                border: `2px solid ${THEME.gray[300]}`,
+                borderRadius: THEME.borderRadius.md,
+                padding: "0.75rem",
+                height: "auto"
+              }}
+            />
           </div>
-          <button type="submit" className={modoEdicion ? "btn-actualizar" : ""} style={{ marginTop: "28px", alignSelf: "flex-end" }}>
-            {modoEdicion ? "Actualizar" : "Registrar"}
-          </button>
-          {modoEdicion && (
+
+          <div style={{ display: "flex", gap: "1rem", marginTop: "1.5rem" }}>
             <button
-              type="button"
-              onClick={handleCancelar}
-              className="btn-cancelar"
+              type="submit"
+              style={{
+                background: THEME.primary.gradient,
+                color: "white",
+                border: "none",
+                padding: "0.75rem 1.5rem",
+                borderRadius: THEME.borderRadius.md,
+                fontWeight: "600",
+                cursor: "pointer",
+                flex: 1
+              }}
             >
-              Cancelar
+              {modoEdicion ? "Actualizar Doctor" : "Registrar Doctor"}
             </button>
-          )}
+
+            {modoEdicion && (
+              <button
+                type="button"
+                onClick={handleCancelar}
+                style={{
+                  background: THEME.gray[400],
+                  color: "white",
+                  border: "none",
+                  padding: "0.75rem 1.5rem",
+                  borderRadius: THEME.borderRadius.md,
+                  fontWeight: "600",
+                  cursor: "pointer"
+                }}
+              >
+                Cancelar
+              </button>
+            )}
+          </div>
         </form>
-        <div className="cards-container">
-          {doctores.map((doc) => (
-            <div key={doc.idDoctor} className="card-doctor">
-              <img
-                src={
-                  doc.imagen
-                    ? `http://localhost:8080/doctores/imagen/${doc.imagen}`
-                    : "https://via.placeholder.com/200x250?text=Sin+Foto"
-                }
-                alt={doc.nombre}
-                className="doctor-img"
-              />
-              <h3>{doc.nombre}</h3>
-              <p>
-                <strong>Especialidad:</strong> {doc.especialidad}
-              </p>
-              <p>
-                <strong>Cantidad disponible:</strong> {doc.cupoPacientes} pacientes
-              </p>
-              <div className="acciones">
-                <button
-                  className="btn-editar"
-                  onClick={() => handleEditar(doc)}
-                >
-                  Editar
-                </button>
-                <button
-                  className="btn-eliminar"
-                  onClick={() => handleEliminar(doc.idDoctor)}
-                >
-                  Eliminar
-                </button>
-              </div>
+
+        {/* CARGANDO */}
+        {loading && (
+          <div className="alert alert-info mt-4">
+            <div className="spinner-border spinner-border-sm me-2" role="status">
+              <span className="visually-hidden">Cargando...</span>
             </div>
-          ))}
-        </div>
+            Cargando doctores...
+          </div>
+        )}
+
+        {/* GRILLA DE DOCTORES */}
+        {!loading && (
+          <div className="cards-container" style={{ marginTop: "2rem" }}>
+            {doctores.map((doc) => (
+              <div
+                key={doc.idDoctor}
+                className="card-doctor"
+                style={{
+                  borderRadius: THEME.borderRadius.lg,
+                  boxShadow: `0 4px 12px ${THEME.gray[300]}`,
+                  overflow: "hidden",
+                  transition: "all 0.3s ease"
+                }}
+              >
+                <img
+                  src={
+                    doc.imagen
+                      ? `http://localhost:8080/doctores/imagen/${doc.imagen}`
+                      : "https://via.placeholder.com/200x250?text=Sin+Foto"
+                  }
+                  alt={doc.nombre}
+                  className="doctor-img"
+                  style={{ height: "250px", objectFit: "cover" }}
+                />
+
+                <div style={{ padding: "1.5rem" }}>
+                  <h3 style={{ color: THEME.primary.main, marginBottom: "0.5rem" }}>
+                    {doc.nombre}
+                  </h3>
+
+                  <p style={{ marginBottom: "0.5rem", color: THEME.gray[600] }}>
+                    <strong>Especialidad:</strong> {doc.especialidad}
+                  </p>
+
+                  <p style={{ marginBottom: "1.5rem", color: THEME.gray[600] }}>
+                    <strong>Cupo disponible:</strong> {doc.cupoPacientes} pacientes
+                  </p>
+
+                  <div className="acciones" style={{ display: "flex", gap: "0.75rem" }}>
+                    <button
+                      onClick={() => handleEditar(doc)}
+                      style={{
+                        background: THEME.info.main,
+                        color: "white",
+                        border: "none",
+                        padding: "0.5rem 1rem",
+                        borderRadius: THEME.borderRadius.md,
+                        cursor: "pointer",
+                        fontWeight: "600",
+                        flex: 1,
+                        transition: "all 0.3s ease"
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.background = THEME.info.dark;
+                        e.target.style.transform = "scale(1.05)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.background = THEME.info.main;
+                        e.target.style.transform = "scale(1)";
+                      }}
+                    >
+                      <i className="fas fa-edit me-1"></i>Editar
+                    </button>
+
+                    <button
+                      onClick={() => eliminarDoctor(doc.idDoctor)}
+                      style={{
+                        background: THEME.danger.main,
+                        color: "white",
+                        border: "none",
+                        padding: "0.5rem 1rem",
+                        borderRadius: THEME.borderRadius.md,
+                        cursor: "pointer",
+                        fontWeight: "600",
+                        flex: 1,
+                        transition: "all 0.3s ease"
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.background = THEME.danger.dark;
+                        e.target.style.transform = "scale(1.05)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.background = THEME.danger.main;
+                        e.target.style.transform = "scale(1)";
+                      }}
+                    >
+                      <i className="fas fa-trash me-1"></i>Eliminar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </AdminLayout>
   );

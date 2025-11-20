@@ -8,9 +8,11 @@ import {
   validarTelefono,
   validarContraseña,
 } from "../utils/validators";
+import { THEME } from "../config/theme";
+import { Card, FormField, Button } from "../components/atoms";
 
 /**
- * Página de Registro - SOLID Refactorizado
+ * Página de Registro - SOLID Refactorizado con Componentes Atómicos
  * Responsabilidad: Orquestar el flujo de registro
  */
 export default function Registrar() {
@@ -26,7 +28,6 @@ export default function Registrar() {
   });
 
   const validarCampos = () => {
-    // Campos requeridos
     if (
       !formData.nombre.trim() ||
       !formData.email.trim() ||
@@ -38,7 +39,6 @@ export default function Registrar() {
       return false;
     }
 
-    // Validaciones específicas
     if (!validarEmail(formData.email)) {
       alert(MESSAGES.VALIDATION.EMAIL_INVALID);
       return false;
@@ -82,105 +82,129 @@ export default function Registrar() {
   };
 
   return (
-    <div className="min-vh-100 d-flex justify-content-center align-items-center bg-light">
-      <div className="card shadow-lg p-4" style={{ maxWidth: "420px", width: "100%" }}>
-        <h2 className="text-center mb-4 text-success fw-bold">Registro de Paciente</h2>
-
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: THEME.gray[50],
+        padding: "1rem"
+      }}
+    >
+      <Card
+        title="📝 Registro de Paciente"
+        variant="default"
+        style={{ maxWidth: "420px", width: "100%" }}
+      >
         {error && (
-          <div className="alert alert-danger alert-dismissible fade show" role="alert">
+          <div
+            style={{
+              background: `${THEME.danger.main}15`,
+              border: `1px solid ${THEME.danger.main}`,
+              color: THEME.danger.main,
+              padding: "1rem",
+              borderRadius: THEME.borderRadius.md,
+              marginBottom: "1rem",
+              fontSize: "0.9rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem"
+            }}
+          >
+            <i className="fas fa-exclamation-triangle"></i>
             {error}
-            <button type="button" className="btn-close" data-bs-dismiss="alert"></button>
           </div>
         )}
 
         <form onSubmit={handleSubmit}>
-          <div className="mb-3">
-            <label className="form-label fw-semibold">Nombre completo</label>
-            <input
-              type="text"
-              className="form-control"
-              name="nombre"
-              value={formData.nombre}
-              onChange={handleChange}
-              placeholder="Ej: Juan Pérez"
-              required
-            />
-          </div>
+          <FormField
+            label="Nombre completo"
+            type="text"
+            name="nombre"
+            value={formData.nombre}
+            onChange={handleChange}
+            placeholder="Juan Pérez"
+            required
+            icon="fas fa-user"
+          />
 
-          <div className="mb-3">
-            <label className="form-label fw-semibold">Correo electrónico</label>
-            <input
-              type="email"
-              className="form-control"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="correo@ejemplo.com"
-              required
-            />
-          </div>
+          <FormField
+            label="Correo electrónico"
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            placeholder="correo@ejemplo.com"
+            required
+            icon="fas fa-envelope"
+          />
 
-          <div className="mb-3">
-            <label className="form-label fw-semibold">Contraseña</label>
-            <input
-              type="password"
-              className="form-control"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Mínimo 6 caracteres"
-              required
-            />
-          </div>
+          <FormField
+            label="DNI"
+            type="text"
+            name="dni"
+            value={formData.dni}
+            onChange={handleChange}
+            placeholder="12345678"
+            required
+            icon="fas fa-id-card"
+          />
 
-          <div className="mb-3">
-            <label className="form-label fw-semibold">DNI</label>
-            <input
-              type="text"
-              maxLength="8"
-              className="form-control"
-              name="dni"
-              value={formData.dni}
-              onChange={(e) => {
-                if (/^\d{0,8}$/.test(e.target.value)) handleChange(e);
-              }}
-              placeholder="8 dígitos"
-              required
-            />
-          </div>
+          <FormField
+            label="Teléfono"
+            type="tel"
+            name="telefono"
+            value={formData.telefono}
+            onChange={handleChange}
+            placeholder="+34 600 000 000"
+            required
+            icon="fas fa-phone"
+          />
 
-          <div className="mb-3">
-            <label className="form-label fw-semibold">Teléfono</label>
-            <input
-              type="text"
-              maxLength="9"
-              className="form-control"
-              name="telefono"
-              value={formData.telefono}
-              onChange={(e) => {
-                if (/^\d{0,9}$/.test(e.target.value)) handleChange(e);
-              }}
-              placeholder="9 dígitos"
-              required
-            />
-          </div>
+          <FormField
+            label="Contraseña"
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            placeholder="••••••••"
+            required
+            icon="fas fa-lock"
+          />
 
-          <button
+          <Button
             type="submit"
-            disabled={loading}
-            className="btn btn-success w-100 fw-semibold mt-3"
+            variant="primary"
+            fullWidth
+            loading={loading}
+            icon="fas fa-check"
           >
-            {loading ? "Registrando..." : "Registrarse"}
-          </button>
+            Registrarse
+          </Button>
         </form>
 
-        <p className="text-center mt-3 text-muted">
-          ¿Ya tienes cuenta?{" "}
-          <Link to="/login" className="text-success fw-semibold">
+        <p
+          style={{
+            textAlign: "center",
+            marginTop: "1.5rem",
+            color: THEME.gray[600],
+            fontSize: "0.95rem"
+          }}
+        >
+          ¿Ya tienes una cuenta?{" "}
+          <Link
+            to="/login"
+            style={{
+              color: THEME.primary.main,
+              fontWeight: "600",
+              textDecoration: "none"
+            }}
+          >
             Inicia sesión
           </Link>
         </p>
-      </div>
+      </Card>
     </div>
   );
 }

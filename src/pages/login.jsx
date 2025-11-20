@@ -3,9 +3,11 @@ import { useAuth } from "../hooks/useAuth";
 import { useFormData } from "../hooks/useFormData";
 import { MESSAGES } from "../constants/messages";
 import { validarEmail } from "../utils/validators";
+import { THEME } from "../config/theme";
+import { Card, FormField, Button } from "../components/atoms";
 
 /**
- * Página de Login - SOLID Refactorizado
+ * Página de Login - SOLID Refactorizado con Componentes Atómicos
  * Responsabilidad: Orquestar el flujo de autenticación
  */
 export default function Login() {
@@ -35,7 +37,6 @@ export default function Login() {
     const success = await login(formData.email, formData.password);
     if (success) {
       reset();
-      // Navegar según rol (manejado en useAuth)
       const usuario = JSON.parse(localStorage.getItem("usuario") || "{}");
       const ruta = usuario.rol === "ADMIN" ? "/admin" : "/cliente";
       navigate(ruta);
@@ -43,60 +44,96 @@ export default function Login() {
   };
 
   return (
-    <div className="min-vh-100 d-flex justify-content-center align-items-center bg-light">
-      <div className="card shadow-lg p-4" style={{ maxWidth: "420px", width: "100%" }}>
-        <h2 className="text-center mb-4 text-success fw-bold">Iniciar Sesión</h2>
-
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: THEME.gray[50],
+        padding: "1rem"
+      }}
+    >
+      <Card
+        title="🔐 Iniciar Sesión"
+        variant="default"
+        style={{ maxWidth: "420px", width: "100%" }}
+      >
         {error && (
-          <div className="alert alert-danger alert-dismissible fade show" role="alert">
+          <div
+            style={{
+              background: `${THEME.danger.main}15`,
+              border: `1px solid ${THEME.danger.main}`,
+              color: THEME.danger.main,
+              padding: "1rem",
+              borderRadius: THEME.borderRadius.md,
+              marginBottom: "1rem",
+              fontSize: "0.9rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem"
+            }}
+          >
+            <i className="fas fa-exclamation-triangle"></i>
             {error}
-            <button type="button" className="btn-close" data-bs-dismiss="alert"></button>
           </div>
         )}
 
         <form onSubmit={handleSubmit}>
-          <div className="mb-3">
-            <label className="form-label fw-semibold">Correo electrónico</label>
-            <input
-              type="email"
-              className="form-control"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="correo@ejemplo.com"
-              required
-            />
-          </div>
+          <FormField
+            label="Correo electrónico"
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            placeholder="correo@ejemplo.com"
+            required
+            icon="fas fa-envelope"
+          />
 
-          <div className="mb-3">
-            <label className="form-label fw-semibold">Contraseña</label>
-            <input
-              type="password"
-              className="form-control"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="********"
-              required
-            />
-          </div>
+          <FormField
+            label="Contraseña"
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            placeholder="••••••••"
+            required
+            icon="fas fa-lock"
+          />
 
-          <button
+          <Button
             type="submit"
-            disabled={loading}
-            className={`btn btn-success w-100 fw-semibold ${loading ? "opacity-75" : ""}`}
+            variant="primary"
+            fullWidth
+            loading={loading}
+            icon="fas fa-sign-in-alt"
           >
-            {loading ? "Ingresando..." : "Iniciar sesión"}
-          </button>
+            Iniciar sesión
+          </Button>
         </form>
 
-        <p className="text-center mt-4 text-muted">
+        <p
+          style={{
+            textAlign: "center",
+            marginTop: "1.5rem",
+            color: THEME.gray[600],
+            fontSize: "0.95rem"
+          }}
+        >
           ¿No tienes una cuenta?{" "}
-          <Link to="/registrar" className="text-success fw-semibold">
+          <Link
+            to="/registrar"
+            style={{
+              color: THEME.primary.main,
+              fontWeight: "600",
+              textDecoration: "none"
+            }}
+          >
             Regístrate aquí
           </Link>
         </p>
-      </div>
+      </Card>
     </div>
   );
 }

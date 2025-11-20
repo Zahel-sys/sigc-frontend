@@ -1,5 +1,5 @@
 import React from "react";
-import { THEME } from "../config/theme";
+import { THEME } from "../../config/theme";
 
 /**
  * Card - Componente atómico para tarjetas

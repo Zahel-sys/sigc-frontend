@@ -1,5 +1,5 @@
 import React from "react";
-import { THEME } from "../config/theme";
+import { THEME } from "../../config/theme";
 
 /**
  * FormField - Componente atómico para campos de formulario

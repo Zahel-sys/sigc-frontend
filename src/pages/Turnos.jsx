@@ -1,89 +1,51 @@
-import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import PublicLayout from "../layouts/PublicLayout";
-import ClienteLayout from "../layouts/ClienteLayout";
-import api from "../services/api";
-import { showSuccess, showWarning, showError, showConfirm } from "../utils/alerts";
+import { useEspecialidades } from "../hooks/useEspecialidades";
+import { useHorariosDisponibles } from "../hooks/useHorariosDisponibles";
+import { showSuccess } from "../utils/alerts";
+import { THEME } from "../config/theme";
 import ReservarCita from "../components/ReservarCita";
 import "../styles/Turnos.css";
 
+/**
+ * Página de Turnos - Seleccionar doctor y reservar cita
+ * Responsabilidad: Orquestar selección de doctor y horario
+ */
 export default function Turnos() {
   const { idEspecialidad } = useParams();
-  const navigate = useNavigate();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { doctores, loading: loadingDoctores } = useEspecialidades(idEspecialidad);
+  const { horarios, loading: loadingHorarios, error: errorHorarios, cargarHorarios, recargarHorarios } = useHorariosDisponibles();
 
-  const [doctores, setDoctores] = useState([]);
-  const [horarios, setHorarios] = useState([]);
   const [doctorSeleccionado, setDoctorSeleccionado] = useState(null);
-  const [cargando, setCargando] = useState(false);
-  const [error, setError] = useState(null);
   const [horarioSeleccionado, setHorarioSeleccionado] = useState(null);
 
-  // 🩺 Cargar doctores filtrados por especialidad
+  // Verificar autenticación - usuario puede reservar cita
   useEffect(() => {
-    // Verificar si el usuario está autenticado
-    const usuario = localStorage.getItem("usuario");
-    setIsAuthenticated(!!usuario);
+    localStorage.getItem("usuario");
+  }, []);
 
-    setCargando(true);
-    api
-      .get("/doctores")
-      .then((res) => {
-        const datos = Array.isArray(res.data) ? res.data : [];
-        const filtrados = datos.filter(
-          (d) =>
-            d.especialidad.toLowerCase().trim() ===
-            idEspecialidad.toLowerCase().trim()
-        );
-        setDoctores(filtrados);
-      })
-      .catch((error) => {
-        console.error("Error al cargar doctores:", error);
-        setDoctores([]);
-      })
-      .finally(() => setCargando(false));
-  }, [idEspecialidad]);
-
-  // 🕓 Cargar horarios de un doctor
-  const cargarHorarios = (idDoctor) => {
+  // Cargar horarios cuando se selecciona un doctor
+  const handleSelectDoctor = (idDoctor) => {
     setDoctorSeleccionado(idDoctor);
-    setCargando(true);
-    setError(null);
-    fetch(`http://localhost:8080/horarios/doctor/${idDoctor}`)
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`Error al obtener horarios: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then((datos) => {
-        const horariosFiltrados = Array.isArray(datos) ? datos : [];
-        setHorarios(horariosFiltrados);
-      })
-      .catch((error) => {
-        console.error("Error al cargar horarios:", error);
-        setError(error.message || "No se pudieron cargar los horarios disponibles.");
-        setHorarios([]);
-      })
-      .finally(() => setCargando(false));
-  };
-
-  // 📅 Manejar cuando se crea una cita
-  const handleCitaCreada = (cita) => {
-    console.log('✅ Cita creada:', cita);
-    showSuccess("¡Cita reservada exitosamente!", `Tu cita ha sido confirmada`);
     setHorarioSeleccionado(null);
-    // Recargar los horarios
-    cargarHorarios(doctorSeleccionado);
+    cargarHorarios(idDoctor);
   };
 
-  // 📅 Formatear fecha a formato legible
+  // Manejar cuando se crea una cita
+  const handleCitaCreada = () => {
+    showSuccess("¡Cita reservada exitosamente!", "Tu cita ha sido confirmada");
+    setHorarioSeleccionado(null);
+    recargarHorarios(doctorSeleccionado);
+  };
+
+  // Formatear fecha a formato legible
   const formatearFecha = (fecha) => {
     const opciones = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(fecha).toLocaleDateString('es-ES', opciones);
   };
 
-  // ⏰ Formatear hora (convertir HH:mm:ss a HH:mm)
+  // Formatear hora (HH:mm:ss a HH:mm)
   const formatearHora = (hora) => {
     return hora.substring(0, 5);
   };
@@ -93,58 +55,75 @@ export default function Turnos() {
       <div className="container mt-4">
         <h2 className="mb-4">Selecciona un Doctor</h2>
 
-        <div className="row justify-content-center">
-          {doctores.map((doc) => (
-            <div
-              key={doc.idDoctor}
-              className="col-md-4 mb-4"
-              onClick={() => cargarHorarios(doc.idDoctor)}
-              style={{ cursor: "pointer" }}
-            >
+        {/* CARGANDO DOCTORES */}
+        {loadingDoctores && (
+          <div className="alert alert-info">
+            <div className="spinner-border spinner-border-sm me-2" role="status">
+              <span className="visually-hidden">Cargando...</span>
+            </div>
+            Cargando doctores...
+          </div>
+        )}
+
+        {/* GRILLA DE DOCTORES */}
+        {!loadingDoctores && (
+          <div className="row justify-content-center">
+            {doctores.map((doc) => (
               <div
-                className={`card h-100 shadow-sm border-0 ${
-                  doctorSeleccionado === doc.idDoctor
-                    ? "border-success shadow"
-                    : ""
-                }`}
+                key={doc.idDoctor}
+                className="col-md-4 mb-4"
+                style={{ cursor: "pointer" }}
               >
-                <img
-                  src={
-                    doc.imagen
-                      ? `http://localhost:8080/doctores/imagen/${doc.imagen}`
-                      : "https://via.placeholder.com/200x250?text=Sin+Foto"
-                  }
-                  alt={doc.nombre}
-                  className="card-img-top"
+                <div
+                  className={`card h-100 shadow-sm border-0 ${
+                    doctorSeleccionado === doc.idDoctor
+                      ? "border-success shadow"
+                      : ""
+                  }`}
+                  onClick={() => handleSelectDoctor(doc.idDoctor)}
                   style={{
-                    objectFit: "cover",
-                    height: "230px",
-                    borderTopLeftRadius: "10px",
-                    borderTopRightRadius: "10px",
+                    borderWidth: doctorSeleccionado === doc.idDoctor ? "3px" : "0",
+                    borderColor: doctorSeleccionado === doc.idDoctor ? THEME.success.main : "transparent",
+                    transition: "all 0.3s ease",
+                    cursor: "pointer"
                   }}
-                  onError={(e) => (e.target.src = "/default.png")}
-                />
-                <div className="card-body text-center">
-                  <h5 className="fw-bold text-green-700">{doc.nombre}</h5>
-                  <p className="text-muted small">{doc.especialidad}</p>
-                  <p className="text-secondary small">
-                    Cantidad disponible: {doc.cupoPacientes}
-                  </p>
+                >
+                  <img
+                    src={
+                      doc.imagen
+                        ? `http://localhost:8080/doctores/imagen/${doc.imagen}`
+                        : "https://via.placeholder.com/200x250?text=Sin+Foto"
+                    }
+                    alt={doc.nombre}
+                    className="card-img-top"
+                    style={{
+                      objectFit: "cover",
+                      height: "230px"
+                    }}
+                    onError={(e) => (e.target.src = "/default.png")}
+                  />
+                  <div className="card-body text-center">
+                    <h5 className="fw-bold" style={{ color: THEME.primary.main }}>
+                      {doc.nombre}
+                    </h5>
+                    <p className="text-muted small">{doc.especialidad}</p>
+                    <p className="text-secondary small">
+                      Cupo disponible: {doc.cupoPacientes}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
-        {/* TABLA DE HORARIOS */}
+        {/* HORARIOS DISPONIBLES */}
         {doctorSeleccionado && (
           <div className="mt-5">
-            <h3 className="mb-3">
-              Horarios Disponibles
-            </h3>
+            <h3 className="mb-3">Horarios Disponibles</h3>
 
             {/* CARGANDO */}
-            {cargando && (
+            {loadingHorarios && (
               <div className="alert alert-info" role="alert">
                 <div className="spinner-border spinner-border-sm me-2" role="status">
                   <span className="visually-hidden">Cargando...</span>
@@ -154,47 +133,83 @@ export default function Turnos() {
             )}
 
             {/* ERROR */}
-            {!cargando && error && (
+            {!loadingHorarios && errorHorarios && (
               <div className="alert alert-danger" role="alert">
-                ⚠️ {error}
+                ⚠️ {errorHorarios}
               </div>
             )}
 
             {/* SIN HORARIOS */}
-            {!cargando && !error && horarios.length === 0 && (
+            {!loadingHorarios && !errorHorarios && horarios.length === 0 && (
               <div className="alert alert-warning" role="alert">
                 📅 No hay horarios disponibles para este doctor
               </div>
             )}
 
             {/* TABLA DE HORARIOS */}
-            {!cargando && !error && horarios.length > 0 && (
+            {!loadingHorarios && !errorHorarios && horarios.length > 0 && (
               <div className="horarios-grid">
                 {horarios.map((horario) => (
-                  <div key={horario.idHorario} className="horario-card">
-                    <div className="horario-header">
-                      <h4>{formatearFecha(horario.fecha)}</h4>
-                      <span className={`badge-turno ${horario.turno.toLowerCase()}`}>
+                  <div
+                    key={horario.idHorario}
+                    className="horario-card"
+                    style={{
+                      border: horarioSeleccionado?.idHorario === horario.idHorario
+                        ? `2px solid ${THEME.primary.main}`
+                        : "1px solid #e9ecef",
+                      borderRadius: THEME.borderRadius.lg,
+                      padding: "1rem",
+                      transition: "all 0.3s ease"
+                    }}
+                  >
+                    <div className="horario-header" style={{ marginBottom: "1rem" }}>
+                      <h4 style={{ marginBottom: "0.5rem" }}>
+                        {formatearFecha(horario.fecha)}
+                      </h4>
+                      <span
+                        className="badge"
+                        style={{
+                          backgroundColor: horario.turno === "MAÑANA"
+                            ? THEME.info.main
+                            : horario.turno === "TARDE"
+                            ? THEME.warning.main
+                            : THEME.secondary.main
+                        }}
+                      >
                         {horario.turno}
                       </span>
                     </div>
 
-                    <div className="horario-body">
-                      <div className="horario-time">
-                        <p><strong>Hora Inicio:</strong> {formatearHora(horario.horaInicio)}</p>
-                        <p><strong>Hora Fin:</strong> {formatearHora(horario.horaFin)}</p>
+                    <div className="horario-body" style={{ marginBottom: "1rem" }}>
+                      <div style={{ marginBottom: "0.5rem" }}>
+                        <p style={{ marginBottom: "0.25rem" }}>
+                          <strong>Hora Inicio:</strong> {formatearHora(horario.horaInicio)}
+                        </p>
+                        <p style={{ marginBottom: "0" }}>
+                          <strong>Hora Fin:</strong> {formatearHora(horario.horaFin)}
+                        </p>
                       </div>
 
-                      <div className="horario-status">
+                      <div>
                         {horario.disponible ? (
-                          <span className="badge bg-success">✓ Disponible</span>
+                          <span
+                            className="badge"
+                            style={{ backgroundColor: THEME.success.main }}
+                          >
+                            ✓ Disponible
+                          </span>
                         ) : (
-                          <span className="badge bg-danger">✗ Ocupado</span>
+                          <span
+                            className="badge"
+                            style={{ backgroundColor: THEME.danger.main }}
+                          >
+                            ✗ Ocupado
+                          </span>
                         )}
                       </div>
                     </div>
 
-                    {/* Mostrar componente ReservarCita si está seleccionado */}
+                    {/* Componente ReservarCita o botón Seleccionar */}
                     {horarioSeleccionado?.idHorario === horario.idHorario ? (
                       <ReservarCita
                         horarioId={horario.idHorario}
@@ -205,7 +220,16 @@ export default function Turnos() {
                       <button
                         onClick={() => setHorarioSeleccionado(horario)}
                         disabled={!horario.disponible}
-                        className="btn btn-primary btn-reservar-main"
+                        className="btn w-100"
+                        style={{
+                          background: THEME.primary.gradient,
+                          color: "white",
+                          border: "none",
+                          borderRadius: THEME.borderRadius.md,
+                          fontWeight: "600",
+                          opacity: horario.disponible ? 1 : 0.5,
+                          cursor: horario.disponible ? "pointer" : "not-allowed"
+                        }}
                       >
                         {horario.disponible ? "Seleccionar" : "Ocupado"}
                       </button>

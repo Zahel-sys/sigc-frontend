@@ -1,184 +1,318 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import AdminLayout from "../layouts/AdminLayout";
-import api from "../services/api";
+import { useGestionHorarios } from "../hooks/useGestionHorarios";
+import { THEME } from "../config/theme";
 
+/**
+ * Página Admin Gestión de Horarios
+ * Responsabilidad: Orquestar formulario y tabla de horarios
+ */
 export default function AdminHorarios() {
-  const [horarios, setHorarios] = useState([]);
-  const [doctores, setDoctores] = useState([]);
-  const [form, setForm] = useState({
+  const { horarios, doctores, loading, guardarHorario, eliminarHorario } = useGestionHorarios();
+
+  const [editando, setEditando] = useState(null);
+  const [formData, setFormData] = useState({
     fecha: "",
     turno: "",
     horaInicio: "",
     horaFin: "",
-    doctor: { idDoctor: "" },
+    doctor: { idDoctor: "" }
   });
-  const [editando, setEditando] = useState(null);
 
-  const cargarDatos = async () => {
-    try {
-      const resHor = await api.get("/horarios");
-      const resDoc = await api.get("/doctores");
-      setHorarios(Array.isArray(resHor.data) ? resHor.data : []);
-      setDoctores(Array.isArray(resDoc.data) ? resDoc.data : []);
-    } catch (error) {
-      console.error("Error al cargar datos:", error);
-      setHorarios([]);
-      setDoctores([]);
-    }
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  useEffect(() => {
-    cargarDatos();
-  }, []);
+  const handleChangeTurno = (e) => {
+    setFormData(prev => ({ ...prev, turno: e.target.value }));
+  };
+
+  const handleChangeDoctor = (e) => {
+    setFormData(prev => ({
+      ...prev,
+      doctor: { idDoctor: e.target.value }
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const payload = { ...form, doctor: { idDoctor: form.doctor.idDoctor } };
 
-    if (editando) await api.put(`/horarios/${editando}`, payload);
-    else await api.post("/horarios", payload);
-
-    setForm({ fecha: "", turno: "", horaInicio: "", horaFin: "", doctor: { idDoctor: "" } });
-    setEditando(null);
-    cargarDatos();
-  };
-
-  const editarHorario = (h) => {
-    setForm({
-      fecha: h.fecha,
-      turno: h.turno,
-      horaInicio: h.horaInicio,
-      horaFin: h.horaFin,
-      doctor: { idDoctor: h.doctor.idDoctor },
-    });
-    setEditando(h.idHorario);
-  };
-
-  const eliminarHorario = async (id) => {
-    if (confirm("¿Eliminar este horario?")) {
-      await api.delete(`/horarios/${id}`);
-      cargarDatos();
+    if (!formData.fecha || !formData.turno || !formData.horaInicio || !formData.horaFin || !formData.doctor.idDoctor) {
+      alert("Por favor completa todos los campos");
+      return;
     }
+
+    const success = await guardarHorario(formData, editando);
+
+    if (success) {
+      setFormData({
+        fecha: "",
+        turno: "",
+        horaInicio: "",
+        horaFin: "",
+        doctor: { idDoctor: "" }
+      });
+      setEditando(null);
+    }
+  };
+
+  const handleEditar = (horario) => {
+    setFormData({
+      fecha: horario.fecha,
+      turno: horario.turno,
+      horaInicio: horario.horaInicio,
+      horaFin: horario.horaFin,
+      doctor: { idDoctor: horario.doctor.idDoctor }
+    });
+    setEditando(horario.idHorario);
+  };
+
+  const handleCancelar = () => {
+    setFormData({
+      fecha: "",
+      turno: "",
+      horaInicio: "",
+      horaFin: "",
+      doctor: { idDoctor: "" }
+    });
+    setEditando(null);
+  };
+
+  const formatearFecha = (fecha) => {
+    const opciones = { year: 'numeric', month: 'short', day: 'numeric' };
+    return new Date(fecha).toLocaleDateString('es-ES', opciones);
   };
 
   return (
     <AdminLayout>
-      <h3 className="mb-4">Gestión de Horarios</h3>
+      <div className="container-fluid py-4">
+        <h3 className="mb-4" style={{ color: THEME.primary.main, fontWeight: "600" }}>
+          <i className="fas fa-calendar-alt me-2"></i>Gestión de Horarios
+        </h3>
 
-      {/* Formulario */}
-      <form onSubmit={handleSubmit} className="mb-4">
-        <div className="row g-2">
-          <div className="col-md-2">
-            <label className="form-label">Fecha de Atención</label>
-            <input
-              type="date"
-              className="form-control"
-              value={form.fecha}
-              onChange={(e) => setForm({ ...form, fecha: e.target.value })}
-              required
-            />
-          </div>
-          <div className="col-md-2">
-            <label className="form-label">Turno</label>
-            <select
-              className="form-select"
-              value={form.turno}
-              onChange={(e) => setForm({ ...form, turno: e.target.value })}
-              required
-            >
-              <option value="">Seleccionar turno</option>
-              <option value="Mañana">Mañana</option>
-              <option value="Tarde">Tarde</option>
-              <option value="Noche">Noche</option>
-            </select>
-          </div>
-          <div className="col-md-2">
-            <label className="form-label">Hora de Inicio</label>
-            <input
-              type="time"
-              className="form-control"
-              value={form.horaInicio}
-              onChange={(e) => setForm({ ...form, horaInicio: e.target.value })}
-              required
-            />
-          </div>
-          <div className="col-md-2">
-            <label className="form-label">Hora de Cierre</label>
-            <input
-              type="time"
-              className="form-control"
-              value={form.horaFin}
-              onChange={(e) => setForm({ ...form, horaFin: e.target.value })}
-              required
-            />
-          </div>
-          <div className="col-md-3">
-            <label className="form-label">Doctor Asignado</label>
-            <select
-              className="form-select"
-              value={form.doctor.idDoctor}
-              onChange={(e) =>
-                setForm({ ...form, doctor: { idDoctor: e.target.value } })
-              }
-              required
-            >
-              <option value="">Seleccionar doctor</option>
-              {doctores.map((d) => (
-                <option key={d.idDoctor} value={d.idDoctor}>
-                  {d.nombre} ({d.especialidad})
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="col-md-1">
-            <button className="btn btn-primary w-100" style={{ marginTop: "32px" }}>
-              {editando ? "Actualizar" : "Agregar"}
-            </button>
-          </div>
-        </div>
-      </form>
+        {/* FORMULARIO */}
+        <form onSubmit={handleSubmit} className="mb-4" style={{
+          backgroundColor: THEME.gray[50],
+          padding: "1.5rem",
+          borderRadius: THEME.borderRadius.lg,
+          border: `1px solid ${THEME.gray[200]}`
+        }}>
+          <div className="row g-3">
+            <div className="col-md-2">
+              <label className="form-label fw-bold">Fecha</label>
+              <input
+                type="date"
+                name="fecha"
+                className="form-control"
+                value={formData.fecha}
+                onChange={handleChange}
+                style={{
+                  border: `2px solid ${THEME.gray[300]}`,
+                  borderRadius: THEME.borderRadius.md
+                }}
+                required
+              />
+            </div>
 
-      {/* Tabla */}
-      <div className="table-responsive">
-        <table className="table table-striped table-hover align-middle">
-          <thead className="table-primary">
-            <tr>
-              <th>#</th>
-              <th>Fecha</th>
-              <th>Turno</th>
-              <th>Inicio</th>
-              <th>Fin</th>
-              <th>Doctor</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {horarios.map((h, i) => (
-              <tr key={h.idHorario}>
-                <td>{i + 1}</td>
-                <td>{h.fecha}</td>
-                <td>{h.turno}</td>
-                <td>{h.horaInicio}</td>
-                <td>{h.horaFin}</td>
-                <td>{h.doctor?.nombre}</td>
-                <td>
-                  <button
-                    className="btn btn-warning btn-sm me-2"
-                    onClick={() => editarHorario(h)}
-                  >
-                    Editar
-                  </button>
-                  <button
-                    className="btn btn-danger btn-sm"
-                    onClick={() => eliminarHorario(h.idHorario)}
-                  >
-                    Eliminar
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+            <div className="col-md-2">
+              <label className="form-label fw-bold">Turno</label>
+              <select
+                className="form-select"
+                value={formData.turno}
+                onChange={handleChangeTurno}
+                style={{
+                  border: `2px solid ${THEME.gray[300]}`,
+                  borderRadius: THEME.borderRadius.md
+                }}
+                required
+              >
+                <option value="">Seleccionar</option>
+                <option value="MAÑANA">Mañana</option>
+                <option value="TARDE">Tarde</option>
+                <option value="NOCHE">Noche</option>
+              </select>
+            </div>
+
+            <div className="col-md-2">
+              <label className="form-label fw-bold">Hora Inicio</label>
+              <input
+                type="time"
+                name="horaInicio"
+                className="form-control"
+                value={formData.horaInicio}
+                onChange={handleChange}
+                style={{
+                  border: `2px solid ${THEME.gray[300]}`,
+                  borderRadius: THEME.borderRadius.md
+                }}
+                required
+              />
+            </div>
+
+            <div className="col-md-2">
+              <label className="form-label fw-bold">Hora Fin</label>
+              <input
+                type="time"
+                name="horaFin"
+                className="form-control"
+                value={formData.horaFin}
+                onChange={handleChange}
+                style={{
+                  border: `2px solid ${THEME.gray[300]}`,
+                  borderRadius: THEME.borderRadius.md
+                }}
+                required
+              />
+            </div>
+
+            <div className="col-md-3">
+              <label className="form-label fw-bold">Doctor</label>
+              <select
+                className="form-select"
+                value={formData.doctor.idDoctor}
+                onChange={handleChangeDoctor}
+                style={{
+                  border: `2px solid ${THEME.gray[300]}`,
+                  borderRadius: THEME.borderRadius.md
+                }}
+                required
+              >
+                <option value="">Seleccionar doctor</option>
+                {doctores.map((d) => (
+                  <option key={d.idDoctor} value={d.idDoctor}>
+                    {d.nombre} ({d.especialidad})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="col-md-1 d-flex gap-2">
+              <button
+                type="submit"
+                className="btn w-100"
+                style={{
+                  background: THEME.primary.gradient,
+                  color: "white",
+                  border: "none",
+                  borderRadius: THEME.borderRadius.md,
+                  fontWeight: "600",
+                  marginTop: "auto"
+                }}
+              >
+                {editando ? "Actualizar" : "Agregar"}
+              </button>
+
+              {editando && (
+                <button
+                  type="button"
+                  onClick={handleCancelar}
+                  className="btn w-100"
+                  style={{
+                    background: THEME.gray[400],
+                    color: "white",
+                    border: "none",
+                    borderRadius: THEME.borderRadius.md,
+                    fontWeight: "600",
+                    marginTop: "auto"
+                  }}
+                >
+                  Cancelar
+                </button>
+              )}
+            </div>
+          </div>
+        </form>
+
+        {/* CARGANDO */}
+        {loading && (
+          <div className="alert alert-info">
+            <div className="spinner-border spinner-border-sm me-2" role="status">
+              <span className="visually-hidden">Cargando...</span>
+            </div>
+            Cargando horarios...
+          </div>
+        )}
+
+        {/* TABLA */}
+        {!loading && (
+          <div className="table-responsive">
+            <table className="table table-striped table-hover align-middle">
+              <thead style={{ background: THEME.primary.gradient, color: "white" }}>
+                <tr>
+                  <th>#</th>
+                  <th>Fecha</th>
+                  <th>Turno</th>
+                  <th>Inicio</th>
+                  <th>Fin</th>
+                  <th>Doctor</th>
+                  <th style={{ width: "150px" }}>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {horarios.map((h, index) => (
+                  <tr key={h.idHorario} style={{ borderBottom: `1px solid ${THEME.gray[200]}` }}>
+                    <td style={{ fontWeight: "600" }}>{index + 1}</td>
+                    <td>{formatearFecha(h.fecha)}</td>
+                    <td>
+                      <span
+                        className="badge"
+                        style={{
+                          backgroundColor: h.turno === "MAÑANA"
+                            ? THEME.info.main
+                            : h.turno === "TARDE"
+                            ? THEME.warning.main
+                            : THEME.secondary.main
+                        }}
+                      >
+                        {h.turno}
+                      </span>
+                    </td>
+                    <td>{h.horaInicio}</td>
+                    <td>{h.horaFin}</td>
+                    <td>
+                      <strong style={{ color: THEME.primary.main }}>
+                        {h.doctor?.nombre}
+                      </strong>
+                      <br />
+                      <small className="text-muted">{h.doctor?.especialidad}</small>
+                    </td>
+                    <td>
+                      <div className="d-flex gap-2">
+                        <button
+                          className="btn btn-sm"
+                          style={{
+                            background: THEME.info.main,
+                            color: "white",
+                            border: "none",
+                            borderRadius: THEME.borderRadius.md,
+                            flex: 1
+                          }}
+                          onClick={() => handleEditar(h)}
+                        >
+                          <i className="fas fa-edit me-1"></i>Editar
+                        </button>
+                        <button
+                          className="btn btn-sm"
+                          style={{
+                            background: THEME.danger.main,
+                            color: "white",
+                            border: "none",
+                            borderRadius: THEME.borderRadius.md,
+                            flex: 1
+                          }}
+                          onClick={() => eliminarHorario(h.idHorario)}
+                        >
+                          <i className="fas fa-trash me-1"></i>Eliminar
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </AdminLayout>
   );

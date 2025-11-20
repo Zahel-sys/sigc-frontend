@@ -1,201 +1,252 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import AdminLayout from "../layouts/AdminLayout";
-import api from "../services/api";
+import { useGestionEspecialidades } from "../hooks/useGestionEspecialidades";
+import { THEME } from "../config/theme";
 
+/**
+ * Página Admin Gestión de Especialidades
+ * Responsabilidad: Orquestar formulario y tabla de especialidades
+ */
 export default function AdminEspecialidades() {
-  const [especialidades, setEspecialidades] = useState([]);
-  const [form, setForm] = useState({ nombre: "", descripcion: "", imagen: "" });
+  const { especialidades, loading, guardarEspecialidad, eliminarEspecialidad, subirImagen } = useGestionEspecialidades();
+
   const [editando, setEditando] = useState(null);
+  const [formData, setFormData] = useState({
+    nombre: "",
+    descripcion: "",
+    imagen: ""
+  });
 
-  // Cargar especialidades desde backend
-  const cargarEspecialidades = async () => {
-    try {
-      const res = await api.get("/especialidades");
-      const datos = Array.isArray(res.data) ? res.data : [];
-      setEspecialidades(datos);
-    } catch (error) {
-      console.error("Error al cargar especialidades:", error);
-      setEspecialidades([]);
-    }
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  useEffect(() => {
-    cargarEspecialidades();
-  }, []);
-
-  // Crear o editar especialidad
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      if (editando) {
-        await api.put(`/especialidades/${editando}`, form);
-      } else {
-        await api.post("/especialidades", form);
-      }
-      setForm({ nombre: "", descripcion: "", imagen: "" });
-      setEditando(null);
-      cargarEspecialidades();
-    } catch (error) {
-      console.error("Error al guardar especialidad:", error);
-      const msg = error.response?.data?.error || error.response?.data?.message || "No se pudo guardar.";
-      alert(`Error: ${msg}`);
-    }
-  };
-
-  // Eliminar especialidad
-  const eliminarEspecialidad = async (id) => {
-    if (window.confirm("¿Eliminar esta especialidad?")) {
-      try {
-        await api.delete(`/especialidades/${id}`);
-        cargarEspecialidades();
-      } catch (error) {
-        console.error("Error al eliminar especialidad:", error);
-        const msg = error.response?.data?.error || error.response?.data?.message || "No se pudo eliminar.";
-        alert(`Error: ${msg}`);
-      }
-    }
-  };
-
-  // Editar especialidad (cargar datos al formulario)
-  const editarEspecialidad = (esp) => {
-    setForm({
-      nombre: esp.nombre,
-      descripcion: esp.descripcion,
-      imagen: esp.imagen,
-    });
-    setEditando(esp.idEspecialidad);
-  };
-
-  // Subir imagen al backend
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
-    if (!validTypes.includes(file.type)) {
-      alert("Solo se permiten archivos de imagen (JPG, PNG, GIF, WEBP)");
-      e.target.value = "";
-      return;
+    const imagenNombre = await subirImagen(file);
+    if (imagenNombre) {
+      setFormData(prev => ({ ...prev, imagen: imagenNombre }));
     }
-    if (file.size > 5 * 1024 * 1024) {
-      alert("La imagen no puede superar los 5MB");
-      e.target.value = "";
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!formData.nombre || !formData.descripcion) {
+      alert("Por favor completa todos los campos");
       return;
     }
 
-    const data = new FormData();
-    data.append("file", file);
+    const success = await guardarEspecialidad(formData, editando);
 
-    try {
-      const res = await api.post("/uploads", data, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      const imageUrl = res.data.url; // Por ejemplo: "/images/especialidades/xxxx.jpg"
-      setForm({ ...form, imagen: imageUrl.split("/").pop() }); // Solo guarda "xxxx.jpg"
-      console.log("Imagen subida exitosamente:", imageUrl);
-    } catch (error) {
-      const errorMsg = error.response?.data?.error || error.response?.data?.message || error.message;
-      alert(`Error al subir imagen: ${errorMsg}`);
+    if (success) {
+      setFormData({ nombre: "", descripcion: "", imagen: "" });
+      setEditando(null);
     }
+  };
+
+  const handleEditar = (esp) => {
+    setFormData({
+      nombre: esp.nombre,
+      descripcion: esp.descripcion,
+      imagen: esp.imagen
+    });
+    setEditando(esp.idEspecialidad);
+  };
+
+  const handleCancelar = () => {
+    setFormData({ nombre: "", descripcion: "", imagen: "" });
+    setEditando(null);
   };
 
   return (
     <AdminLayout>
-      <h3 className="mb-4">Gestión de Especialidades</h3>
-      {/* Formulario */}
-      <form onSubmit={handleSubmit} className="mb-4" encType="multipart/form-data">
-        <div className="row g-2">
-          <div className="col-md-3">
-            <label className="form-label">Especialidad</label>
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Nombre"
-              value={form.nombre}
-              onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-              required
-            />
+      <div className="container-fluid py-4">
+        <h3 className="mb-4" style={{ color: THEME.primary.main, fontWeight: "600" }}>
+          <i className="fas fa-hospital me-2"></i>Gestión de Especialidades
+        </h3>
+
+        {/* FORMULARIO */}
+        <form onSubmit={handleSubmit} className="mb-4" encType="multipart/form-data" style={{
+          backgroundColor: THEME.gray[50],
+          padding: "1.5rem",
+          borderRadius: THEME.borderRadius.lg,
+          border: `1px solid ${THEME.gray[200]}`
+        }}>
+          <div className="row g-3">
+            <div className="col-md-3">
+              <label className="form-label fw-bold">Nombre</label>
+              <input
+                type="text"
+                name="nombre"
+                className="form-control"
+                placeholder="Ej: Cardiología"
+                value={formData.nombre}
+                onChange={handleChange}
+                style={{
+                  border: `2px solid ${THEME.gray[300]}`,
+                  borderRadius: THEME.borderRadius.md
+                }}
+                required
+              />
+            </div>
+
+            <div className="col-md-4">
+              <label className="form-label fw-bold">Descripción</label>
+              <input
+                type="text"
+                name="descripcion"
+                className="form-control"
+                placeholder="Descripción breve"
+                value={formData.descripcion}
+                onChange={handleChange}
+                style={{
+                  border: `2px solid ${THEME.gray[300]}`,
+                  borderRadius: THEME.borderRadius.md
+                }}
+                required
+              />
+            </div>
+
+            <div className="col-md-3">
+              <label className="form-label fw-bold">Imagen</label>
+              <input
+                type="file"
+                accept="image/*"
+                className="form-control"
+                onChange={handleFileUpload}
+                style={{
+                  border: `2px solid ${THEME.gray[300]}`,
+                  borderRadius: THEME.borderRadius.md
+                }}
+              />
+            </div>
+
+            <div className="col-md-2 d-flex gap-2">
+              <button
+                type="submit"
+                className="btn w-100"
+                style={{
+                  background: THEME.primary.gradient,
+                  color: "white",
+                  border: "none",
+                  borderRadius: THEME.borderRadius.md,
+                  fontWeight: "600",
+                  marginTop: "auto"
+                }}
+              >
+                {editando ? "Actualizar" : "Agregar"}
+              </button>
+
+              {editando && (
+                <button
+                  type="button"
+                  onClick={handleCancelar}
+                  className="btn w-100"
+                  style={{
+                    background: THEME.gray[400],
+                    color: "white",
+                    border: "none",
+                    borderRadius: THEME.borderRadius.md,
+                    fontWeight: "600",
+                    marginTop: "auto"
+                  }}
+                >
+                  Cancelar
+                </button>
+              )}
+            </div>
           </div>
-          <div className="col-md-4">
-            <label className="form-label">Descripción</label>
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Descripción"
-              value={form.descripcion}
-              onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
-              required
-            />
+        </form>
+
+        {/* CARGANDO */}
+        {loading && (
+          <div className="alert alert-info">
+            <div className="spinner-border spinner-border-sm me-2" role="status">
+              <span className="visually-hidden">Cargando...</span>
+            </div>
+            Cargando especialidades...
           </div>
-          <div className="col-md-3">
-            <label className="form-label">Imagen</label>
-            <input
-              type="file"
-              className="form-control"
-              accept="image/*"
-              onChange={handleFileUpload}
-            />
+        )}
+
+        {/* TABLA */}
+        {!loading && (
+          <div className="table-responsive">
+            <table className="table table-striped table-hover align-middle">
+              <thead style={{ background: THEME.primary.gradient, color: "white" }}>
+                <tr>
+                  <th>#</th>
+                  <th>Imagen</th>
+                  <th>Nombre</th>
+                  <th>Descripción</th>
+                  <th style={{ width: "150px" }}>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {especialidades.map((esp, index) => (
+                  <tr key={esp.idEspecialidad} style={{ borderBottom: `1px solid ${THEME.gray[200]}` }}>
+                    <td style={{ fontWeight: "600" }}>{index + 1}</td>
+                    <td>
+                      {esp.imagen ? (
+                        <img
+                          src={`http://localhost:8080/images/especialidades/${esp.imagen}`}
+                          alt={esp.nombre}
+                          style={{
+                            width: "70px",
+                            height: "70px",
+                            borderRadius: THEME.borderRadius.md,
+                            objectFit: "cover",
+                            border: `2px solid ${THEME.primary.light}`
+                          }}
+                          onError={(e) => {
+                            e.target.src = "https://via.placeholder.com/70?text=Sin+Foto";
+                          }}
+                        />
+                      ) : (
+                        <span className="text-muted">Sin imagen</span>
+                      )}
+                    </td>
+                    <td style={{ fontWeight: "600", color: THEME.primary.main }}>{esp.nombre}</td>
+                    <td>{esp.descripcion}</td>
+                    <td>
+                      <div className="d-flex gap-2">
+                        <button
+                          className="btn btn-sm"
+                          style={{
+                            background: THEME.info.main,
+                            color: "white",
+                            border: "none",
+                            borderRadius: THEME.borderRadius.md,
+                            flex: 1
+                          }}
+                          onClick={() => handleEditar(esp)}
+                        >
+                          <i className="fas fa-edit me-1"></i>Editar
+                        </button>
+                        <button
+                          className="btn btn-sm"
+                          style={{
+                            background: THEME.danger.main,
+                            color: "white",
+                            border: "none",
+                            borderRadius: THEME.borderRadius.md,
+                            flex: 1
+                          }}
+                          onClick={() => eliminarEspecialidad(esp.idEspecialidad)}
+                        >
+                          <i className="fas fa-trash me-1"></i>Eliminar
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-          <div className="col-md-2">
-            <button className="btn btn-primary w-100" style={{ marginTop: "32px" }}>
-              {editando ? "Actualizar" : "Agregar"}
-            </button>
-          </div>
-        </div>
-      </form>
-      {/* Tabla de especialidades */}
-      <div className="table-responsive">
-        <table className="table table-striped table-hover align-middle">
-          <thead className="table-primary">
-            <tr>
-              <th>#</th>
-              <th>Imagen</th>
-              <th>Nombre</th>
-              <th>Descripción</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {especialidades.map((esp, index) => (
-              <tr key={esp.idEspecialidad}>
-                <td>{index + 1}</td>
-                <td>
-                  {esp.imagen ? (
-                    <img
-                      src={`http://localhost:8080/images/especialidades/${esp.imagen}`}
-                      alt={esp.nombre}
-                      style={{
-                        width: "70px",
-                        height: "70px",
-                        borderRadius: "10px",
-                        objectFit: "cover",
-                        border: "1px solid #ccc",
-                      }}
-                    />
-                  ) : (
-                    <span className="text-muted">Sin imagen</span>
-                  )}
-                </td>
-                <td>{esp.nombre}</td>
-                <td>{esp.descripcion}</td>
-                <td>
-                  <button
-                    className="btn btn-warning btn-sm me-2"
-                    onClick={() => editarEspecialidad(esp)}
-                  >
-                    Editar
-                  </button>
-                  <button
-                    className="btn btn-danger btn-sm"
-                    onClick={() => eliminarEspecialidad(esp.idEspecialidad)}
-                  >
-                    Eliminar
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        )}
       </div>
     </AdminLayout>
   );

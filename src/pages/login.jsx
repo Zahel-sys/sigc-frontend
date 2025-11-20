@@ -1,55 +1,58 @@
-import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import api from "../services/api";
-import { showSuccess, showError, showWarning } from "../utils/alerts";
+import { useAuth } from "../hooks/useAuth";
+import { useFormData } from "../hooks/useFormData";
+import { MESSAGES } from "../constants/messages";
+import { validarEmail } from "../utils/validators";
 
+/**
+ * Página de Login - SOLID Refactorizado
+ * Responsabilidad: Orquestar el flujo de autenticación
+ */
 export default function Login() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const { login, loading, error } = useAuth();
+  const { formData, handleChange, reset } = useFormData({
+    email: "",
+    password: "",
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!email.trim() || !password.trim()) {
-      showWarning("Por favor completa todos los campos.");
+    // Validar campos
+    if (!formData.email.trim() || !formData.password.trim()) {
+      alert(MESSAGES.VALIDATION.REQUIRED_FIELDS);
       return;
     }
 
-    setLoading(true);
-    try {
-      const res = await api.post("/auth/login", { email, password });
+    // Validar email
+    if (!validarEmail(formData.email)) {
+      alert(MESSAGES.VALIDATION.EMAIL_INVALID);
+      return;
+    }
 
-      if (res.data && !res.data.error) {
-        localStorage.setItem("usuario", JSON.stringify(res.data));
-
-        if (res.data.rol === "ADMIN") {
-          showSuccess("Bienvenido Administrador", "Acceso concedido");
-          navigate("/admin");
-        } else if (res.data.rol === "PACIENTE") {
-          showSuccess("Inicio de sesión exitoso", "Bienvenido a SIGC");
-          navigate("/cliente");
-        } else {
-          showWarning("Rol desconocido. Contacta al administrador.");
-        }
-      } else {
-        showError("Credenciales inválidas. Intenta nuevamente.");
-      }
-    } catch (err) {
-      console.error("Error en inicio de sesión:", err);
-      const mensaje =
-        err.response?.data?.message || "Error al iniciar sesión. Intenta más tarde.";
-      showError(mensaje);
-    } finally {
-      setLoading(false);
+    // Intentar login
+    const success = await login(formData.email, formData.password);
+    if (success) {
+      reset();
+      // Navegar según rol (manejado en useAuth)
+      const usuario = JSON.parse(localStorage.getItem("usuario") || "{}");
+      const ruta = usuario.rol === "ADMIN" ? "/admin" : "/cliente";
+      navigate(ruta);
     }
   };
 
   return (
     <div className="min-vh-100 d-flex justify-content-center align-items-center bg-light">
       <div className="card shadow-lg p-4" style={{ maxWidth: "420px", width: "100%" }}>
-        <h2 className="text-center mb-4 text-success fw-bold"> Iniciar Sesión</h2>
+        <h2 className="text-center mb-4 text-success fw-bold">Iniciar Sesión</h2>
+
+        {error && (
+          <div className="alert alert-danger alert-dismissible fade show" role="alert">
+            {error}
+            <button type="button" className="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="mb-3">
@@ -57,8 +60,9 @@ export default function Login() {
             <input
               type="email"
               className="form-control"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
               placeholder="correo@ejemplo.com"
               required
             />
@@ -69,8 +73,9 @@ export default function Login() {
             <input
               type="password"
               className="form-control"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
               placeholder="********"
               required
             />
@@ -79,9 +84,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className={`btn btn-success w-100 fw-semibold ${
-              loading ? "opacity-75" : ""
-            }`}
+            className={`btn btn-success w-100 fw-semibold ${loading ? "opacity-75" : ""}`}
           >
             {loading ? "Ingresando..." : "Iniciar sesión"}
           </button>

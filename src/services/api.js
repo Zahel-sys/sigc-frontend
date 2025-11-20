@@ -1,7 +1,12 @@
 import axios from "axios";
 
+// Configuración centralizada (DIP - Dependency Inversion Principle)
+const getBaseURL = () => {
+  return import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
+};
+
 const api = axios.create({
-  baseURL: "",
+  baseURL: getBaseURL(),
 });
 
 // Interceptor para agregar el token automáticamente a todas las peticiones

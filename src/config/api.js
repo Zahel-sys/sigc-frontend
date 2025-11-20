@@ -1,9 +1,10 @@
 /**
  * Configuración centralizada de API (Open/Closed Principle)
  * URLs, endpoints y rutas en un único lugar
+ * Usa import.meta.env para Vite (DIP - Dependency Inversion)
  */
 
-const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
 
 export const API_CONFIG = {
   BASE_URL,
@@ -54,7 +55,7 @@ export const API_CONFIG = {
   RETRY_DELAY: 1000,
 
   // Logs
-  DEBUG: process.env.NODE_ENV === 'development',
+  DEBUG: import.meta.env.MODE === 'development',
 };
 
 export default API_CONFIG;

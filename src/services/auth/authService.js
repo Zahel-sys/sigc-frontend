@@ -19,6 +19,7 @@ export const authService = {
       email,
       password,
     });
+    console.log('🔍 DEBUG - Response completo del login:', response.data);
     return response.data;
   },
 
@@ -82,16 +83,30 @@ export const authService = {
 
   /**
    * Guarda el usuario y token en localStorage
-   * Backend devuelve: { token: string, usuario: {...} }
-   * @param {Object} data - { token, usuario }
+   * Backend devuelve: { idUsuario, message, rol, email, token, nombre? }
+   * @param {Object} data - Respuesta del backend
    */
   saveUser: (data) => {
+    console.log('💾 DEBUG - Guardando en localStorage:', data);
+    
+    // Guardar token
     if (data.token) {
       localStorage.setItem('token', data.token);
+      console.log('✅ Token guardado');
+    } else {
+      console.warn('⚠️ No se encontró token en data');
     }
-    if (data.usuario) {
-      localStorage.setItem('usuario', JSON.stringify(data.usuario));
-    }
+    
+    // Extraer datos del usuario (el backend los devuelve en el objeto raíz)
+    const usuario = {
+      idUsuario: data.idUsuario,
+      nombre: data.nombre || data.email, // Usar email si no hay nombre
+      email: data.email,
+      rol: data.rol
+    };
+    
+    localStorage.setItem('usuario', JSON.stringify(usuario));
+    console.log('✅ Usuario guardado:', usuario);
   },
 
   /**

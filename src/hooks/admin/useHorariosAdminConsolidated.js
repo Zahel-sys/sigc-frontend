@@ -99,8 +99,23 @@ export function useHorariosAdmin() {
       
       // Extraer idDoctor - soporta estructura plana o anidada (Open/Closed Principle)
       const idDoctor = datos.idDoctor || datos.doctor?.idDoctor;
-      if (!idDoctor) {
+      
+      console.log('🔍 Extracción de idDoctor:', {
+        'datos.idDoctor': datos.idDoctor,
+        'datos.doctor': datos.doctor,
+        'datos.doctor?.idDoctor': datos.doctor?.idDoctor,
+        'idDoctor extraído': idDoctor,
+        'tipo': typeof idDoctor
+      });
+      
+      if (!idDoctor || idDoctor === "" || idDoctor === "0") {
         throw new Error("Debes seleccionar un doctor");
+      }
+
+      // Validar que parseInt sea válido
+      const idDoctorNum = parseInt(idDoctor, 10);
+      if (isNaN(idDoctorNum) || idDoctorNum <= 0) {
+        throw new Error(`ID de doctor inválido: "${idDoctor}"`);
       }
 
       const payload = {
@@ -108,7 +123,7 @@ export function useHorariosAdmin() {
         turno: datos.turno || null, // Campo opcional
         horaInicio: datos.horaInicio,
         horaFin: datos.horaFin,
-        idDoctor: parseInt(idDoctor),
+        idDoctor: idDoctorNum,
         estado: datos.estado || "DISPONIBLE"
       };
 

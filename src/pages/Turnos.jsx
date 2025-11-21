@@ -94,7 +94,7 @@ export default function Turnos() {
                         ? `http://localhost:8080${doc.imagen}`
                         : "https://via.placeholder.com/200x250?text=Sin+Foto"
                     }
-                    alt={doc.nombre}
+                    alt={`Dr. ${doc.nombre} ${doc.apellido}`}
                     className="card-img-top"
                     style={{
                       objectFit: "cover",
@@ -104,11 +104,11 @@ export default function Turnos() {
                   />
                   <div className="card-body text-center">
                     <h5 className="fw-bold" style={{ color: THEME.primary.main }}>
-                      {doc.nombre}
+                      Dr. {doc.nombre} {doc.apellido}
                     </h5>
-                    <p className="text-muted small">{doc.especialidad}</p>
+                    <p className="text-muted small">{doc.especialidad?.nombre || 'N/A'}</p>
                     <p className="text-secondary small">
-                      Cupo disponible: {doc.cupoPacientes}
+                      📧 {doc.correo}
                     </p>
                   </div>
                 </div>

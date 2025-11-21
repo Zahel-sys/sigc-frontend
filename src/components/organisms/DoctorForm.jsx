@@ -7,6 +7,11 @@ import { THEME } from "../../config/theme";
  * DoctorForm - Componente organism para formulario de doctor
  * Combina: Múltiples FormGroup + Button + Lógica de validación
  * 
+ * ACTUALIZADO: Nueva estructura de doctores (21/11/2025)
+ * - Agregado: apellido, telefono, correo
+ * - Cambiado: especialidadId (ID numérico, no string)
+ * - Eliminado: cupoPacientes
+ * 
  * @param {Object} initialData - Datos iniciales del formulario
  * @param {Array} especialidades - Lista de especialidades disponibles
  * @param {Function} onSubmit - Callback al enviar (recibe formData)
@@ -17,8 +22,10 @@ import { THEME } from "../../config/theme";
 export function DoctorForm({
   initialData = {
     nombre: "",
-    especialidad: "",
-    cupoPacientes: "",
+    apellido: "",
+    telefono: "",
+    correo: "",
+    especialidadId: "",
     imagen: null,
   },
   especialidades = [],
@@ -54,23 +61,51 @@ export function DoctorForm({
   const validate = () => {
     const newErrors = {};
 
+    // Validar nombre
     if (!formData.nombre.trim()) {
       newErrors.nombre = "El nombre es obligatorio";
-    } else if (formData.nombre.trim().length < 3) {
-      newErrors.nombre = "El nombre debe tener al menos 3 caracteres";
+    } else if (formData.nombre.trim().length < 2) {
+      newErrors.nombre = "El nombre debe tener al menos 2 caracteres";
+    } else if (formData.nombre.trim().length > 100) {
+      newErrors.nombre = "El nombre no puede superar 100 caracteres";
     }
 
-    if (!formData.especialidad) {
-      newErrors.especialidad = "Debes seleccionar una especialidad";
+    // Validar apellido
+    if (!formData.apellido.trim()) {
+      newErrors.apellido = "El apellido es obligatorio";
+    } else if (formData.apellido.trim().length < 2) {
+      newErrors.apellido = "El apellido debe tener al menos 2 caracteres";
+    } else if (formData.apellido.trim().length > 100) {
+      newErrors.apellido = "El apellido no puede superar 100 caracteres";
     }
 
-    if (!formData.cupoPacientes) {
-      newErrors.cupoPacientes = "El cupo es obligatorio";
+    // Validar teléfono
+    if (!formData.telefono.trim()) {
+      newErrors.telefono = "El teléfono es obligatorio";
+    } else if (formData.telefono.trim().length > 20) {
+      newErrors.telefono = "El teléfono no puede superar 20 caracteres";
     } else {
-      const cupo = parseInt(formData.cupoPacientes);
-      if (isNaN(cupo) || cupo < 1 || cupo > 20) {
-        newErrors.cupoPacientes = "El cupo debe ser un número entre 1 y 20";
+      const telefonoRegex = /^[0-9+\-\s()]+$/;
+      if (!telefonoRegex.test(formData.telefono.trim())) {
+        newErrors.telefono = "Teléfono inválido (solo números, +, -, espacios, paréntesis)";
       }
+    }
+
+    // Validar correo
+    if (!formData.correo.trim()) {
+      newErrors.correo = "El correo es obligatorio";
+    } else if (formData.correo.trim().length > 100) {
+      newErrors.correo = "El correo no puede superar 100 caracteres";
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.correo.trim())) {
+        newErrors.correo = "Correo electrónico inválido";
+      }
+    }
+
+    // Validar especialidad
+    if (!formData.especialidadId) {
+      newErrors.especialidadId = "Debes seleccionar una especialidad";
     }
 
     // Validar imagen solo si es nueva (no en edición)
@@ -155,16 +190,62 @@ export function DoctorForm({
       <div style={{ display: "grid", gap: "1rem" }}>
         {/* Nombre */}
         <FormGroup
-          label="Nombre Completo"
+          label="Nombre"
           name="nombre"
           type="text"
           value={formData.nombre}
           onChange={handleChange}
           error={errors.nombre}
           required
-          placeholder="Ej: Dr. Juan Pérez García"
+          placeholder="Ej: Ricardo"
           icon="👨‍⚕️"
           disabled={loading}
+          maxLength={100}
+        />
+
+        {/* Apellido */}
+        <FormGroup
+          label="Apellido"
+          name="apellido"
+          type="text"
+          value={formData.apellido}
+          onChange={handleChange}
+          error={errors.apellido}
+          required
+          placeholder="Ej: López García"
+          icon="👤"
+          disabled={loading}
+          maxLength={100}
+        />
+
+        {/* Teléfono */}
+        <FormGroup
+          label="Teléfono"
+          name="telefono"
+          type="tel"
+          value={formData.telefono}
+          onChange={handleChange}
+          error={errors.telefono}
+          required
+          placeholder="Ej: 555-1234"
+          icon="📞"
+          disabled={loading}
+          maxLength={20}
+        />
+
+        {/* Correo */}
+        <FormGroup
+          label="Correo Electrónico"
+          name="correo"
+          type="email"
+          value={formData.correo}
+          onChange={handleChange}
+          error={errors.correo}
+          required
+          placeholder="Ej: ricardo.lopez@sigc.com"
+          icon="📧"
+          disabled={loading}
+          maxLength={100}
         />
 
         {/* Especialidad */}
@@ -174,7 +255,7 @@ export function DoctorForm({
               display: "block",
               marginBottom: "0.5rem",
               fontWeight: "600",
-              color: errors.especialidad ? THEME.danger.main : THEME.text.primary,
+              color: errors.especialidadId ? THEME.danger.main : THEME.text.primary,
               fontSize: "0.95rem",
             }}
           >
@@ -182,8 +263,8 @@ export function DoctorForm({
           </label>
 
           <select
-            name="especialidad"
-            value={formData.especialidad}
+            name="especialidadId"
+            value={formData.especialidadId}
             onChange={handleChange}
             disabled={loading}
             style={{
@@ -191,7 +272,7 @@ export function DoctorForm({
               padding: "0.75rem 1rem",
               borderRadius: THEME.borderRadius.md,
               border: `2px solid ${
-                errors.especialidad ? THEME.danger.main : THEME.border.light
+                errors.especialidadId ? THEME.danger.main : THEME.border.light
               }`,
               fontSize: "1rem",
               color: THEME.text.primary,
@@ -199,15 +280,15 @@ export function DoctorForm({
               cursor: loading ? "not-allowed" : "pointer",
             }}
           >
-            <option value="">Selecciona una especialidad</option>
+            <option value="">Seleccione una especialidad</option>
             {especialidades.map((esp) => (
-              <option key={esp.idEspecialidad} value={esp.nombre}>
+              <option key={esp.idEspecialidad} value={esp.idEspecialidad}>
                 {esp.nombre}
               </option>
             ))}
           </select>
 
-          {errors.especialidad && (
+          {errors.especialidadId && (
             <div
               style={{
                 marginTop: "0.5rem",
@@ -219,25 +300,10 @@ export function DoctorForm({
               }}
             >
               <span>⚠️</span>
-              <span>{errors.especialidad}</span>
+              <span>{errors.especialidadId}</span>
             </div>
           )}
         </div>
-
-        {/* Cupo */}
-        <FormGroup
-          label="Cupo de Pacientes"
-          name="cupoPacientes"
-          type="number"
-          value={formData.cupoPacientes}
-          onChange={handleChange}
-          error={errors.cupoPacientes}
-          required
-          placeholder="1-20"
-          helperText="Número de pacientes que puede atender por día"
-          icon="📊"
-          disabled={loading}
-        />
 
         {/* Imagen */}
         <div>

@@ -58,10 +58,14 @@ export function useDoctoresAdmin() {
   /**
    * Guardar doctor (crear nuevo o actualizar existente)
    * 
+   * ACTUALIZADO: Nueva estructura de doctores (21/11/2025)
+   * 
    * @param {Object} datos - Datos del formulario
-   * @param {string} datos.nombre - Nombre completo del doctor
-   * @param {string} datos.especialidad - Especialidad médica
-   * @param {number} datos.cupoPacientes - Cupo de pacientes (1-20)
+   * @param {string} datos.nombre - Nombre del doctor
+   * @param {string} datos.apellido - Apellido del doctor
+   * @param {string} datos.telefono - Teléfono de contacto
+   * @param {string} datos.correo - Correo electrónico (único)
+   * @param {number} datos.especialidadId - ID de la especialidad
    * @param {File} datos.imagen - Archivo de imagen (opcional)
    * @param {number|null} idDoctor - ID del doctor (null para crear, ID para actualizar)
    * @returns {Promise<boolean>} true si éxito, false si error
@@ -75,20 +79,26 @@ export function useDoctoresAdmin() {
       if (!datos.nombre?.trim()) {
         throw new Error("El nombre es obligatorio");
       }
-      if (!datos.especialidad?.trim()) {
-        throw new Error("La especialidad es obligatoria");
+      if (!datos.apellido?.trim()) {
+        throw new Error("El apellido es obligatorio");
       }
-      
-      const cupo = parseInt(datos.cupoPacientes);
-      if (isNaN(cupo) || cupo < 1 || cupo > 20) {
-        throw new Error("El cupo debe ser un número entre 1 y 20");
+      if (!datos.telefono?.trim()) {
+        throw new Error("El teléfono es obligatorio");
+      }
+      if (!datos.correo?.trim()) {
+        throw new Error("El correo es obligatorio");
+      }
+      if (!datos.especialidadId) {
+        throw new Error("Debe seleccionar una especialidad");
       }
 
       // Preparar FormData (backend requiere multipart/form-data)
       const formData = new FormData();
       formData.append("nombre", datos.nombre.trim());
-      formData.append("especialidad", datos.especialidad.trim());
-      formData.append("cupoPacientes", cupo);
+      formData.append("apellido", datos.apellido.trim());
+      formData.append("telefono", datos.telefono.trim());
+      formData.append("correo", datos.correo.trim());
+      formData.append("especialidadId", parseInt(datos.especialidadId));
       
       // Solo agregar imagen si existe y es un archivo
       if (datos.imagen instanceof File) {
@@ -97,8 +107,10 @@ export function useDoctoresAdmin() {
 
       console.log('📤 Enviando datos al backend:');
       console.log('  - Nombre:', datos.nombre);
-      console.log('  - Especialidad:', datos.especialidad);
-      console.log('  - Cupo:', cupo);
+      console.log('  - Apellido:', datos.apellido);
+      console.log('  - Teléfono:', datos.telefono);
+      console.log('  - Correo:', datos.correo);
+      console.log('  - EspecialidadId:', datos.especialidadId);
       console.log('  - Imagen:', datos.imagen ? datos.imagen.name : 'Sin imagen');
       console.log('  - Modo:', idDoctor ? 'Actualizar' : 'Crear');
 

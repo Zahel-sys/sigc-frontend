@@ -13,13 +13,15 @@ import "../styles/AdminDoctores.css";
 export default function AdminDoctores() {
   const { doctores, especialidades, loading, guardarDoctor, eliminarDoctor } = useDoctoresAdmin();
 
-  // Estado del formulario
+  // Estado del formulario - ACTUALIZADO: Nueva estructura 21/11/2025
   const [modoEdicion, setModoEdicion] = useState(false);
   const [doctorEditando, setDoctorEditando] = useState(null);
   const [formData, setFormData] = useState({
     nombre: "",
-    especialidad: "",
-    cupoPacientes: "",
+    apellido: "",
+    telefono: "",
+    correo: "",
+    especialidadId: "",
     imagen: null
   });
 
@@ -28,7 +30,14 @@ export default function AdminDoctores() {
     const success = await guardarDoctor(data, modoEdicion ? doctorEditando : null);
 
     if (success) {
-      setFormData({ nombre: "", especialidad: "", cupoPacientes: "", imagen: null });
+      setFormData({ 
+        nombre: "", 
+        apellido: "", 
+        telefono: "", 
+        correo: "", 
+        especialidadId: "", 
+        imagen: null 
+      });
       setModoEdicion(false);
       setDoctorEditando(null);
     }
@@ -39,8 +48,11 @@ export default function AdminDoctores() {
     setDoctorEditando(doctor.idDoctor);
     setFormData({
       nombre: doctor.nombre,
-      especialidad: doctor.especialidad,
-      cupoPacientes: doctor.cupoPacientes,
+      apellido: doctor.apellido,
+      telefono: doctor.telefono,
+      correo: doctor.correo,
+      // Extraer ID del objeto especialidad
+      especialidadId: doctor.especialidad?.idEspecialidad || "",
       imagen: null
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -49,7 +61,14 @@ export default function AdminDoctores() {
   const handleCancelar = () => {
     setModoEdicion(false);
     setDoctorEditando(null);
-    setFormData({ nombre: "", especialidad: "", cupoPacientes: "", imagen: null });
+    setFormData({ 
+      nombre: "", 
+      apellido: "", 
+      telefono: "", 
+      correo: "", 
+      especialidadId: "", 
+      imagen: null 
+    });
   };
 
   return (
@@ -126,7 +145,7 @@ export default function AdminDoctores() {
                       ? `http://localhost:8080${doc.imagen}`
                       : "https://via.placeholder.com/200x250?text=Sin+Foto"
                   }
-                  alt={doc.nombre}
+                  alt={`Dr. ${doc.nombre} ${doc.apellido}`}
                   className="doctor-img"
                   onError={(e) => e.target.src = "https://via.placeholder.com/200x250?text=Sin+Foto"}
                   style={{ height: "250px", objectFit: "cover" }}
@@ -134,15 +153,19 @@ export default function AdminDoctores() {
 
                 <div style={{ padding: "1.5rem" }}>
                   <h3 style={{ color: THEME.primary.main, marginBottom: "0.5rem" }}>
-                    {doc.nombre}
+                    Dr. {doc.nombre} {doc.apellido}
                   </h3>
 
                   <p style={{ marginBottom: "0.5rem", color: THEME.gray[600] }}>
-                    <strong>Especialidad:</strong> {doc.especialidad}
+                    <strong>Especialidad:</strong> {doc.especialidad?.nombre || 'N/A'}
+                  </p>
+
+                  <p style={{ marginBottom: "0.5rem", color: THEME.gray[600] }}>
+                    <strong>Correo:</strong> {doc.correo}
                   </p>
 
                   <p style={{ marginBottom: "1.5rem", color: THEME.gray[600] }}>
-                    <strong>Cupo disponible:</strong> {doc.cupoPacientes} pacientes
+                    <strong>Teléfono:</strong> {doc.telefono}
                   </p>
 
                   <div className="acciones" style={{ display: "flex", gap: "0.75rem" }}>

@@ -34,14 +34,16 @@ export function useDoctoresAdmin() {
     }
   }, []);
 
-  // Guardar doctor (crear o actualizar)
+  // Guardar doctor (crear o actualizar) - ACTUALIZADO 21/11/2025
   const guardarDoctor = useCallback(async (datos, idDoctor = null) => {
     try {
       // El backend requiere multipart/form-data
       const formData = new FormData();
       formData.append("nombre", datos.nombre.trim());
-      formData.append("especialidad", datos.especialidad.trim());
-      formData.append("cupoPacientes", parseInt(datos.cupoPacientes));
+      formData.append("apellido", datos.apellido.trim());
+      formData.append("telefono", datos.telefono.trim());
+      formData.append("correo", datos.correo.trim());
+      formData.append("especialidadId", parseInt(datos.especialidadId));
       
       // Solo agregar imagen si existe
       if (datos.imagen instanceof File) {
@@ -50,8 +52,10 @@ export function useDoctoresAdmin() {
 
       console.log('📤 Enviando datos al backend:');
       console.log('  - Nombre:', datos.nombre);
-      console.log('  - Especialidad:', datos.especialidad);
-      console.log('  - Cupo:', datos.cupoPacientes);
+      console.log('  - Apellido:', datos.apellido);
+      console.log('  - Teléfono:', datos.telefono);
+      console.log('  - Correo:', datos.correo);
+      console.log('  - EspecialidadId:', datos.especialidadId);
       console.log('  - Imagen:', datos.imagen ? datos.imagen.name : 'Sin imagen');
 
       if (idDoctor) {

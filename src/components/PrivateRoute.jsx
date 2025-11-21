@@ -1,7 +1,9 @@
 import { Navigate } from "react-router-dom";
 
 export default function PrivateRoute({ children, requiredRole }) {
-  // Obtener usuario del localStorage de forma segura
+  // Verificar autenticación: debe existir tanto token como usuario
+  const token = localStorage.getItem("token");
+  
   let usuario = null;
   try {
     const storedUser = localStorage.getItem("usuario");
@@ -10,12 +12,13 @@ export default function PrivateRoute({ children, requiredRole }) {
     }
   } catch (error) {
     console.error("Error al parsear usuario desde localStorage:", error);
-    localStorage.removeItem("usuario"); // Limpiar datos corruptos
+    localStorage.removeItem("usuario");
+    localStorage.removeItem("token");
   }
   
-  // Si no hay usuario autenticado, redirigir al login
-  if (!usuario) {
-    console.log("PrivateRoute: No hay usuario autenticado, redirigiendo a /login");
+  // Si no hay token O no hay usuario, redirigir al login
+  if (!token || !usuario) {
+    console.log("PrivateRoute: No autenticado (token:", !!token, "usuario:", !!usuario, "), redirigiendo a /login");
     return <Navigate to="/login" replace />;
   }
 

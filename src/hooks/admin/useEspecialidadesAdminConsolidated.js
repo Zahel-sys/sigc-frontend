@@ -152,6 +152,42 @@ export function useEspecialidadesAdmin() {
   }, [cargarEspecialidades]);
 
   /**
+   * Subir imagen de especialidad al servidor
+   * 
+   * @param {File} archivo - Archivo de imagen a subir
+   * @returns {Promise<string|null>} Nombre del archivo guardado o null si error
+   */
+  const subirImagen = useCallback(async (archivo) => {
+    try {
+      const formData = new FormData();
+      formData.append('imagen', archivo);
+
+      console.log('📤 Subiendo imagen de especialidad...');
+      const res = await api.post('/especialidades/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      const nombreArchivo = res.data?.nombreArchivo || res.data?.filename || res.data?.imagen;
+      
+      if (nombreArchivo) {
+        console.log('✅ Imagen subida exitosamente:', nombreArchivo);
+        showSuccess('Éxito', 'Imagen subida correctamente');
+        return nombreArchivo;
+      }
+
+      throw new Error('No se recibió el nombre del archivo');
+      
+    } catch (err) {
+      console.error('❌ Error al subir imagen:', err);
+      const mensaje = err.response?.data?.message || 'Error al subir la imagen';
+      showError('Error', mensaje);
+      return null;
+    }
+  }, []);
+
+  /**
    * Recargar datos
    */
   const recargar = useCallback(async () => {
@@ -176,6 +212,7 @@ export function useEspecialidadesAdmin() {
     crearEspecialidad,
     actualizarEspecialidad,
     eliminarEspecialidad,
+    subirImagen,
     
     // Recarga
     cargarEspecialidades,

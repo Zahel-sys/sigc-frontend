@@ -77,9 +77,8 @@ export function useGestionEspecialidades() {
       const data = new FormData();
       data.append("file", file);
 
-      const res = await api.post("/uploads", data, {
-        headers: { "Content-Type": "multipart/form-data" }
-      });
+      // ✅ NO especificar Content-Type - axios lo maneja automáticamente
+      const res = await api.post("/uploads", data);
 
       const imageUrl = res.data.url;
       return imageUrl.split("/").pop();

@@ -32,9 +32,8 @@ export const doctoresService = {
    * @returns {Promise<Object>}
    */
   createDoctor: async (formData) => {
-    const response = await api.post(API_CONFIG.ENDPOINTS.DOCTORES, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    // ✅ NO especificar Content-Type - axios lo maneja automáticamente con boundary
+    const response = await api.post(API_CONFIG.ENDPOINTS.DOCTORES, formData);
     return response.data;
   },
 
@@ -45,9 +44,8 @@ export const doctoresService = {
    * @returns {Promise<Object>}
    */
   updateDoctor: async (id, formData) => {
-    const response = await api.put(API_CONFIG.ENDPOINTS.DOCTOR_BY_ID(id), formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    // ✅ NO especificar Content-Type - axios lo maneja automáticamente con boundary
+    const response = await api.put(API_CONFIG.ENDPOINTS.DOCTOR_BY_ID(id), formData);
     return response.data;
   },
 

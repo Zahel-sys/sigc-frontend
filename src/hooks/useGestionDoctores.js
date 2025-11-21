@@ -56,16 +56,14 @@ export function useDoctoresAdmin() {
 
       if (idDoctor) {
         // Actualizar doctor existente
-        const response = await api.put(`/doctores/${idDoctor}`, formData, {
-          headers: { "Content-Type": "multipart/form-data" }
-        });
+        // ✅ NO especificar Content-Type - axios lo maneja automáticamente
+        const response = await api.put(`/doctores/${idDoctor}`, formData);
         console.log('✅ Doctor actualizado:', response.data);
         showSuccess("Doctor actualizado", "Los datos se guardaron correctamente");
       } else {
         // Crear nuevo doctor
-        const response = await api.post("/doctores", formData, {
-          headers: { "Content-Type": "multipart/form-data" }
-        });
+        // ✅ NO especificar Content-Type - axios lo maneja automáticamente
+        const response = await api.post("/doctores", formData);
         console.log('✅ Doctor creado:', response.data);
         showSuccess("Doctor registrado", "El doctor se registró correctamente");
       }

@@ -56,41 +56,47 @@ export function useEspecialidadesAdmin() {
         throw new Error("El nombre es obligatorio");
       }
 
-      // Determinar si hay una imagen nueva (File) o existente (string)
+      // Determinar si hay una imagen (File nuevo o string existente)
       const tieneImagenNueva = datos.imagen instanceof File;
+      const tieneImagenExistente = typeof datos.imagen === 'string' && datos.imagen.trim();
       
       let payload;
-      let headers = {};
+      let config = {};
 
-      if (tieneImagenNueva) {
-        // Si hay archivo nuevo, usar FormData
+      // SIEMPRE usar FormData si hay imagen (consistencia con backend)
+      if (tieneImagenNueva || tieneImagenExistente) {
         payload = new FormData();
         payload.append('nombre', datos.nombre.trim());
         payload.append('descripcion', datos.descripcion?.trim() || '');
-        payload.append('imagen', datos.imagen);
-        headers['Content-Type'] = 'multipart/form-data';
-        console.log('📤 Enviando especialidad con imagen nueva');
+        
+        if (tieneImagenNueva) {
+          // Archivo nuevo (File object)
+          payload.append('imagen', datos.imagen);
+          console.log('📤 Enviando especialidad con archivo nuevo');
+        } else if (tieneImagenExistente) {
+          // Nombre de archivo existente (string)
+          payload.append('imagen', datos.imagen);
+          console.log('📤 Enviando especialidad manteniendo imagen:', datos.imagen);
+        }
+        
+        config.headers = { 'Content-Type': 'multipart/form-data' };
       } else {
-        // Sin archivo nuevo, usar JSON
+        // Sin imagen, usar JSON puro
         payload = {
           nombre: datos.nombre.trim(),
           descripcion: datos.descripcion?.trim() || null
         };
-        // Si hay nombre de imagen existente (edición sin cambiar imagen)
-        if (datos.imagen && typeof datos.imagen === 'string') {
-          payload.imagen = datos.imagen;
-        }
-        console.log('📤 Enviando especialidad sin imagen nueva:', payload);
+        console.log('📤 Enviando especialidad sin imagen:', payload);
       }
 
       let response;
       if (idEspecialidad) {
         // Actualizar
-        response = await api.put(`/especialidades/${idEspecialidad}`, payload, { headers });
+        response = await api.put(`/especialidades/${idEspecialidad}`, payload, config);
         showSuccess("Especialidad actualizada", MESSAGES.SPECIALTIES?.UPDATED || "Los datos se guardaron correctamente");
       } else {
         // Crear
-        response = await api.post("/especialidades", payload, { headers });
+        response = await api.post("/especialidades", payload, config);
         showSuccess("Especialidad creada", MESSAGES.SPECIALTIES?.CREATED || "La especialidad se registró correctamente");
       }
 
@@ -99,11 +105,26 @@ export function useEspecialidadesAdmin() {
       return true;
       
     } catch (err) {
-      console.error('❌ Error:', err);
+      console.error('❌ Error completo:', err);
+      console.error('❌ Response error:', err.response?.data);
+      console.error('❌ Status:', err.response?.status);
       
       let mensaje = MESSAGES.SPECIALTIES?.ERROR_SAVE || "No se pudo guardar la especialidad";
-      if (err.response?.data?.message) {
-        mensaje = err.response.data.message;
+      
+      // Manejo específico de errores HTTP
+      if (err.response) {
+        const status = err.response.status;
+        const serverMessage = err.response.data?.message || err.response.data?.error;
+        
+        if (status === 500) {
+          mensaje = serverMessage || "Error interno del servidor. Por favor contacta al administrador.";
+        } else if (status === 400) {
+          mensaje = serverMessage || "Datos inválidos. Verifica el formulario.";
+        } else if (status === 404) {
+          mensaje = "Especialidad no encontrada.";
+        } else if (serverMessage) {
+          mensaje = serverMessage;
+        }
       } else if (err.message) {
         mensaje = err.message;
       }

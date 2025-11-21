@@ -83,7 +83,8 @@ export function useEspecialidadesAdmin() {
           console.log('📤 Enviando especialidad manteniendo imagen:', datos.imagen);
         }
         
-        config.headers = { 'Content-Type': 'multipart/form-data' };
+        // ✅ NO especificar Content-Type - axios lo maneja automáticamente con boundary
+        // config.headers será vacío, axios agregará: multipart/form-data; boundary=...
       } else {
         // Sin imagen, usar JSON puro
         payload = {

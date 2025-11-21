@@ -136,7 +136,7 @@ export default function AdminEspecialidades() {
               <label className="form-label fw-bold">Imagen</label>
               <input
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/jpg,image/png,image/webp"
                 className="form-control"
                 onChange={handleFileUpload}
                 style={{
@@ -144,6 +144,9 @@ export default function AdminEspecialidades() {
                   borderRadius: THEME.borderRadius.md
                 }}
               />
+              <small className="text-muted d-block mt-1">
+                JPG, PNG, WEBP. Máx 5MB
+              </small>
             </div>
 
             <div className="col-md-2 d-flex gap-2">

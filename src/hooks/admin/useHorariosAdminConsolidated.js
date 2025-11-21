@@ -87,6 +87,8 @@ export function useHorariosAdmin() {
     setError(null);
     
     try {
+      console.log('📥 Datos recibidos en guardarHorario:', datos);
+      
       // Validaciones
       if (!datos.fecha) {
         throw new Error("La fecha es obligatoria");
@@ -94,19 +96,23 @@ export function useHorariosAdmin() {
       if (!datos.horaInicio || !datos.horaFin) {
         throw new Error("Las horas de inicio y fin son obligatorias");
       }
-      if (!datos.idDoctor) {
+      
+      // Extraer idDoctor - soporta estructura plana o anidada (Open/Closed Principle)
+      const idDoctor = datos.idDoctor || datos.doctor?.idDoctor;
+      if (!idDoctor) {
         throw new Error("Debes seleccionar un doctor");
       }
 
       const payload = {
         fecha: datos.fecha,
+        turno: datos.turno || null, // Campo opcional
         horaInicio: datos.horaInicio,
         horaFin: datos.horaFin,
-        idDoctor: parseInt(datos.idDoctor),
+        idDoctor: parseInt(idDoctor),
         estado: datos.estado || "DISPONIBLE"
       };
 
-      console.log('📤 Enviando horario:', payload);
+      console.log('📤 Payload a enviar:', payload);
 
       let response;
       if (idHorario) {

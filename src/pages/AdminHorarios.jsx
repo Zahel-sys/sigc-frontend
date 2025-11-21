@@ -1,14 +1,15 @@
 import { useState } from "react";
 import AdminLayout from "../layouts/AdminLayout";
-import { useGestionHorarios } from "../hooks/useGestionHorarios";
+import { useHorariosAdmin } from "../hooks/admin";
 import { THEME } from "../config/theme";
 
 /**
  * Página Admin Gestión de Horarios
  * Responsabilidad: Orquestar formulario y tabla de horarios
+ * MIGRADO: Usa hook consolidado useHorariosAdmin
  */
 export default function AdminHorarios() {
-  const { horarios, doctores, loading, guardarHorario, eliminarHorario } = useGestionHorarios();
+  const { horarios, doctores, loading, guardarHorario, eliminarHorario } = useHorariosAdmin();
 
   const [editando, setEditando] = useState(null);
   const [formData, setFormData] = useState({

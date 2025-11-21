@@ -37,25 +37,60 @@ export function useDoctoresAdmin() {
   // Guardar doctor (crear o actualizar)
   const guardarDoctor = useCallback(async (datos, idDoctor = null) => {
     try {
+      // El backend requiere multipart/form-data
       const formData = new FormData();
-      formData.append("nombre", datos.nombre);
-      formData.append("especialidad", datos.especialidad);
-      formData.append("cupoPacientes", datos.cupoPacientes);
-      if (datos.imagen) formData.append("imagen", datos.imagen);
+      formData.append("nombre", datos.nombre.trim());
+      formData.append("especialidad", datos.especialidad.trim());
+      formData.append("cupoPacientes", parseInt(datos.cupoPacientes));
+      
+      // Solo agregar imagen si existe
+      if (datos.imagen instanceof File) {
+        formData.append("imagen", datos.imagen);
+      }
+
+      console.log('📤 Enviando datos al backend:');
+      console.log('  - Nombre:', datos.nombre);
+      console.log('  - Especialidad:', datos.especialidad);
+      console.log('  - Cupo:', datos.cupoPacientes);
+      console.log('  - Imagen:', datos.imagen ? datos.imagen.name : 'Sin imagen');
 
       if (idDoctor) {
-        await api.put(`/doctores/${idDoctor}`, formData);
+        // Actualizar doctor existente
+        const response = await api.put(`/doctores/${idDoctor}`, formData, {
+          headers: { "Content-Type": "multipart/form-data" }
+        });
+        console.log('✅ Doctor actualizado:', response.data);
         showSuccess("Doctor actualizado", "Los datos se guardaron correctamente");
       } else {
-        await api.post("/doctores", formData);
+        // Crear nuevo doctor
+        const response = await api.post("/doctores", formData, {
+          headers: { "Content-Type": "multipart/form-data" }
+        });
+        console.log('✅ Doctor creado:', response.data);
         showSuccess("Doctor registrado", "El doctor se registró correctamente");
       }
 
       await cargarDoctores();
       return true;
     } catch (error) {
-      console.error("Error al guardar doctor:", error);
-      showError("Error", error.response?.data?.message || "No se pudo guardar el doctor");
+      console.error('❌ Error completo:', error);
+      console.error('❌ Response:', error.response);
+      
+      let mensaje = "No se pudo guardar el doctor";
+      
+      if (error.response?.data) {
+        if (typeof error.response.data === 'string') {
+          mensaje = error.response.data;
+        } else if (error.response.data.message) {
+          mensaje = error.response.data.message;
+        } else if (error.response.data.error) {
+          mensaje = error.response.data.error;
+        }
+      } else if (error.message) {
+        mensaje = error.message;
+      }
+      
+      showError("Error al guardar doctor", mensaje);
       return false;
     }
   }, [cargarDoctores]);

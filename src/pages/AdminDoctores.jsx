@@ -1,17 +1,19 @@
 import { useState } from "react";
 import AdminLayout from "../layouts/AdminLayout";
-import { useDoctoresAdmin } from "../hooks/useGestionDoctores";
+import { useDoctoresAdmin } from "../hooks/admin";
+import { DoctorForm } from "../components/organisms/DoctorForm";
 import { THEME } from "../config/theme";
 import "../styles/AdminDoctores.css";
 
 /**
  * Página Admin Gestión de Doctores
  * Responsabilidad: Orquestar formulario y tabla de doctores
+ * MIGRADO: Usa organism DoctorForm + hook consolidado
  */
 export default function AdminDoctores() {
   const { doctores, especialidades, loading, guardarDoctor, eliminarDoctor } = useDoctoresAdmin();
 
-  // Formulario
+  // Estado del formulario
   const [modoEdicion, setModoEdicion] = useState(false);
   const [doctorEditando, setDoctorEditando] = useState(null);
   const [formData, setFormData] = useState({
@@ -21,24 +23,9 @@ export default function AdminDoctores() {
     imagen: null
   });
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleChangeImagen = (e) => {
-    setFormData(prev => ({ ...prev, imagen: e.target.files[0] }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!formData.nombre || !formData.especialidad || !formData.cupoPacientes) {
-      alert("Por favor completa todos los campos");
-      return;
-    }
-
-    const success = await guardarDoctor(formData, modoEdicion ? doctorEditando : null);
+  // Handlers
+  const handleSubmit = async (data) => {
+    const success = await guardarDoctor(data, modoEdicion ? doctorEditando : null);
 
     if (success) {
       setFormData({ nombre: "", especialidad: "", cupoPacientes: "", imagen: null });
@@ -72,115 +59,42 @@ export default function AdminDoctores() {
           <i className="fas fa-stethoscope me-2"></i>Gestión de Doctores
         </h1>
 
-        {/* FORMULARIO */}
-        <form className="form-doctor" onSubmit={handleSubmit} style={{ backgroundColor: THEME.gray[50], borderRadius: THEME.borderRadius.lg }}>
-          <div className="form-field">
-            <label>Nombre del Doctor</label>
-            <input
-              type="text"
-              name="nombre"
-              placeholder="Ej: Dr. Juan Pérez"
-              value={formData.nombre}
-              onChange={handleChange}
-              style={{
-                border: `2px solid ${THEME.gray[300]}`,
-                borderRadius: THEME.borderRadius.md,
-                padding: "0.75rem"
-              }}
-              required
-            />
-          </div>
+        {/* FORMULARIO - Usando organism DoctorForm */}
+        <div style={{ backgroundColor: THEME.gray[50], borderRadius: THEME.borderRadius.lg, padding: '2rem' }}>
+          <DoctorForm
+            initialData={formData}
+            especialidades={especialidades}
+            onSubmit={handleSubmit}
+            onCancel={handleCancelar}
+            isEditing={modoEdicion}
+            loading={loading}
+          />
+        </div>
 
-          <div className="form-field">
-            <label>Especialidad</label>
-            <select
-              name="especialidad"
-              value={formData.especialidad}
-              onChange={handleChange}
-              style={{
-                border: `2px solid ${THEME.gray[300]}`,
-                borderRadius: THEME.borderRadius.md,
-                padding: "0.75rem"
-              }}
-              required
-            >
-              <option value="">Seleccionar especialidad</option>
-              {especialidades.map((esp) => (
-                <option key={esp.idEspecialidad} value={esp.nombre}>
-                  {esp.nombre}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="form-field">
-            <label>Cantidad de Pacientes</label>
-            <input
-              type="number"
-              name="cupoPacientes"
-              placeholder="Ej: 10"
-              value={formData.cupoPacientes}
-              onChange={handleChange}
-              style={{
-                border: `2px solid ${THEME.gray[300]}`,
-                borderRadius: THEME.borderRadius.md,
-                padding: "0.75rem"
-              }}
-              required
-            />
-          </div>
-
-          <div className="form-field">
-            <label>Imagen</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleChangeImagen}
-              style={{
-                border: `2px solid ${THEME.gray[300]}`,
-                borderRadius: THEME.borderRadius.md,
-                padding: "0.75rem",
-                height: "auto"
-              }}
-            />
-          </div>
-
-          <div style={{ display: "flex", gap: "1rem", marginTop: "1.5rem" }}>
-            <button
-              type="submit"
-              style={{
-                background: THEME.primary.gradient,
-                color: "white",
-                border: "none",
-                padding: "0.75rem 1.5rem",
-                borderRadius: THEME.borderRadius.md,
-                fontWeight: "600",
-                cursor: "pointer",
-                flex: 1
-              }}
-            >
-              {modoEdicion ? "Actualizar Doctor" : "Registrar Doctor"}
-            </button>
-
-            {modoEdicion && (
-              <button
-                type="button"
-                onClick={handleCancelar}
-                style={{
-                  background: THEME.gray[400],
-                  color: "white",
-                  border: "none",
-                  padding: "0.75rem 1.5rem",
-                  borderRadius: THEME.borderRadius.md,
-                  fontWeight: "600",
-                  cursor: "pointer"
-                }}
-              >
-                Cancelar
-              </button>
-            )}
-          </div>
-        </form>
+        {/* NOTA IMPORTANTE */}
+        <div style={{ 
+          background: '#fff3cd', 
+          border: '1px solid #ffc107', 
+          borderRadius: '8px', 
+          padding: '1rem', 
+          marginTop: '1.5rem',
+          marginBottom: '1.5rem'
+        }}>
+          <h4 style={{ color: '#856404', marginBottom: '0.5rem' }}>
+            <i className="fas fa-info-circle me-2"></i>Nota Importante
+          </h4>
+          <p style={{ color: '#856404', marginBottom: '0.5rem' }}>
+            Si al crear un doctor aparece un <strong>error 500</strong>, puede ser porque:
+          </p>
+          <ul style={{ color: '#856404', marginBottom: 0 }}>
+            <li>La tabla <code>doctores</code> en MySQL tiene una estructura incorrecta</li>
+            <li>Faltan columnas o hay problemas con las foreign keys</li>
+            <li>El backend necesita recrear la tabla automáticamente</li>
+          </ul>
+          <p style={{ color: '#856404', marginTop: '0.5rem', marginBottom: 0 }}>
+            <strong>Solución:</strong> Deja que Hibernate cree las tablas automáticamente eliminando las tablas manuales.
+          </p>
+        </div>
 
         {/* CARGANDO */}
         {loading && (

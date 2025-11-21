@@ -1,14 +1,15 @@
 import { useState } from "react";
 import AdminLayout from "../layouts/AdminLayout";
-import { useGestionEspecialidades } from "../hooks/useGestionEspecialidades";
+import { useEspecialidadesAdmin } from "../hooks/admin";
 import { THEME } from "../config/theme";
 
 /**
  * Página Admin Gestión de Especialidades
  * Responsabilidad: Orquestar formulario y tabla de especialidades
+ * MIGRADO: Usa hook consolidado useEspecialidadesAdmin
  */
 export default function AdminEspecialidades() {
-  const { especialidades, loading, guardarEspecialidad, eliminarEspecialidad, subirImagen } = useGestionEspecialidades();
+  const { especialidades, loading, guardarEspecialidad, eliminarEspecialidad, subirImagen } = useEspecialidadesAdmin();
 
   const [editando, setEditando] = useState(null);
   const [formData, setFormData] = useState({

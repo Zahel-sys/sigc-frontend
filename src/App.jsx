@@ -12,6 +12,7 @@ import AdminDoctores from "./pages/AdminDoctores";
 import AdminHorarios from "./pages/AdminHorarios";
 import Registrar from "./pages/Registrar";
 import Home from "./pages/Home";
+import EjemploAPI from "./pages/EjemploAPI";
 import PrivateRoute from "./components/PrivateRoute";
 
 function App() {
@@ -94,6 +95,9 @@ function App() {
         <Route path="/especialidades" element={<Especialidades />} />
         <Route path="/turnos/:idEspecialidad" element={<Turnos />} />
         <Route path="/cita-confirmada" element={<CitaConfirmada />} />
+        
+        {/* Ejemplo de demostración de API */}
+        <Route path="/ejemplo-api" element={<EjemploAPI />} />
       </Routes>
     </Router>
   );

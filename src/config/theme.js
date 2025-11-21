@@ -60,6 +60,29 @@ export const THEME = {
     900: '#111827',
   },
 
+  // Colores de texto
+  text: {
+    primary: '#111827',
+    secondary: '#6b7280',
+    disabled: '#9ca3af',
+    inverse: '#ffffff',
+  },
+
+  // Colores de fondo
+  background: {
+    default: '#ffffff',
+    light: '#f9fafb',
+    dark: '#111827',
+    paper: '#ffffff',
+  },
+
+  // Colores de borde
+  border: {
+    light: '#e5e7eb',
+    main: '#d1d5db',
+    dark: '#9ca3af',
+  },
+
   // Espaciado
   spacing: {
     xs: '0.25rem',

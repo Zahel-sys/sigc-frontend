@@ -61,10 +61,10 @@ export function useGestionEspecialidades() {
   }, [cargarEspecialidades]);
 
   const subirImagen = useCallback(async (file) => {
-    const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
+    const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
     
     if (!validTypes.includes(file.type)) {
-      showError("Error", "Solo se permiten archivos de imagen (JPG, PNG, GIF, WEBP)");
+      showError("Error", "Solo se permiten archivos de imagen (JPG, PNG, WEBP)");
       return null;
     }
 

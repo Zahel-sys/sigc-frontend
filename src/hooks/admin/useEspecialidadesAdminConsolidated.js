@@ -72,7 +72,11 @@ export function useEspecialidadesAdmin() {
         if (tieneImagenNueva) {
           // Archivo nuevo (File object)
           payload.append('imagen', datos.imagen);
-          console.log('📤 Enviando especialidad con archivo nuevo');
+          console.log('📤 Enviando especialidad con archivo nuevo:', {
+            nombre: datos.imagen.name,
+            tamaño: `${(datos.imagen.size / 1024).toFixed(2)}KB`,
+            tipo: datos.imagen.type
+          });
         } else if (tieneImagenExistente) {
           // Nombre de archivo existente (string)
           payload.append('imagen', datos.imagen);

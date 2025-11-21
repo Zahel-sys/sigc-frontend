@@ -25,10 +25,32 @@ export default function AdminEspecialidades() {
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      // Guardar el archivo directamente, se enviará con FormData en guardarEspecialidad
-      setFormData(prev => ({ ...prev, imagen: file }));
+    if (!file) return;
+
+    // Validar tipo de archivo
+    const tiposPermitidos = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!tiposPermitidos.includes(file.type)) {
+      alert('Solo se permiten imágenes (JPG, PNG, WEBP)');
+      e.target.value = ''; // Limpiar input
+      return;
     }
+
+    // Validar tamaño (5MB máximo)
+    const maxSize = 5 * 1024 * 1024; // 5MB en bytes
+    if (file.size > maxSize) {
+      alert('La imagen no debe superar los 5MB');
+      e.target.value = ''; // Limpiar input
+      return;
+    }
+
+    console.log('📁 Archivo válido seleccionado:', { 
+      name: file.name, 
+      size: `${(file.size / 1024).toFixed(2)}KB`,
+      type: file.type 
+    });
+
+    // Guardar el archivo directamente, se enviará con FormData en guardarEspecialidad
+    setFormData(prev => ({ ...prev, imagen: file }));
   };
 
   const handleSubmit = async (e) => {

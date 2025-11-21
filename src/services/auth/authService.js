@@ -55,7 +55,8 @@ export const authService = {
    * Cierra la sesión (limpia localStorage)
    */
   logout: () => {
-    localStorage.clear();
+    localStorage.removeItem('token');
+    localStorage.removeItem('usuario');
   },
 
   /**
@@ -63,12 +64,7 @@ export const authService = {
    * @returns {string|null}
    */
   getToken: () => {
-    try {
-      const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
-      return usuario.token || null;
-    } catch {
-      return null;
-    }
+    return localStorage.getItem('token') || null;
   },
 
   /**
@@ -77,18 +73,25 @@ export const authService = {
    */
   getStoredUser: () => {
     try {
-      return JSON.parse(localStorage.getItem('usuario') || 'null');
+      const usuario = localStorage.getItem('usuario');
+      return usuario ? JSON.parse(usuario) : null;
     } catch {
       return null;
     }
   },
 
   /**
-   * Guarda el usuario en localStorage
-   * @param {Object} usuario
+   * Guarda el usuario y token en localStorage
+   * Backend devuelve: { token: string, usuario: {...} }
+   * @param {Object} data - { token, usuario }
    */
-  saveUser: (usuario) => {
-    localStorage.setItem('usuario', JSON.stringify(usuario));
+  saveUser: (data) => {
+    if (data.token) {
+      localStorage.setItem('token', data.token);
+    }
+    if (data.usuario) {
+      localStorage.setItem('usuario', JSON.stringify(data.usuario));
+    }
   },
 
   /**

@@ -10,9 +10,14 @@ export default function EspecialidadCard({ especialidad }) {
       style={{ cursor: "pointer" }}
     >
       <img
-        src={especialidad.imagen || "https://via.placeholder.com/400x250"}
+        src={
+          especialidad.imagen
+            ? `http://localhost:8080${especialidad.imagen}`
+            : "https://via.placeholder.com/400x250?text=Sin+Foto"
+        }
         className="card-img-top"
         alt={especialidad.nombre}
+        onError={(e) => e.target.src = "https://via.placeholder.com/400x250?text=Sin+Foto"}
       />
       <div className="card-body text-center">
         <h5 className="card-title">{especialidad.nombre}</h5>

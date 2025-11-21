@@ -91,7 +91,7 @@ export default function Turnos() {
                   <img
                     src={
                       doc.imagen
-                        ? `http://localhost:8080/doctores/imagen/${doc.imagen}`
+                        ? `http://localhost:8080${doc.imagen}`
                         : "https://via.placeholder.com/200x250?text=Sin+Foto"
                     }
                     alt={doc.nombre}
@@ -100,7 +100,7 @@ export default function Turnos() {
                       objectFit: "cover",
                       height: "230px"
                     }}
-                    onError={(e) => (e.target.src = "/default.png")}
+                    onError={(e) => e.target.src = "https://via.placeholder.com/200x250?text=Sin+Foto"}
                   />
                   <div className="card-body text-center">
                     <h5 className="fw-bold" style={{ color: THEME.primary.main }}>

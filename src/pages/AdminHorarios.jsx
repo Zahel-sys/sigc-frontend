@@ -14,10 +14,10 @@ export default function AdminHorarios() {
   const [editando, setEditando] = useState(null);
   const [formData, setFormData] = useState({
     fecha: "",
-    turno: "",
-    horaInicio: "",
-    horaFin: "",
-    doctor: { idDoctor: "" }
+    turno: "Mañana",
+    horaInicio: "08:00",
+    horaFin: "12:00",
+    idDoctor: null  // Número plano, NO objeto
   });
 
   const handleChange = (e) => {
@@ -30,9 +30,11 @@ export default function AdminHorarios() {
   };
 
   const handleChangeDoctor = (e) => {
+    const idDoctor = parseInt(e.target.value, 10);
+    console.log('🔍 Doctor seleccionado ID:', idDoctor, typeof idDoctor);
     setFormData(prev => ({
       ...prev,
-      doctor: { idDoctor: e.target.value }
+      idDoctor: idDoctor || null  // Guardar como número
     }));
   };
 
@@ -40,10 +42,23 @@ export default function AdminHorarios() {
     e.preventDefault();
 
     console.log('📋 Datos del formulario antes de guardar:', formData);
+    console.log('📋 Tipo de idDoctor:', typeof formData.idDoctor);
 
-    // Validación mejorada del doctor
-    const idDoctor = formData.doctor?.idDoctor;
-    if (!formData.fecha || !formData.turno || !formData.horaInicio || !formData.horaFin || !idDoctor || idDoctor === "" || idDoctor === "0") {
+    // Validación explícita del idDoctor
+    if (!formData.idDoctor || formData.idDoctor === 0) {
+      alert("❌ Debe seleccionar un doctor válido");
+      return;
+    }
+
+    // Verificar que el doctor exista en la lista
+    const doctorExiste = doctores.some(d => d.idDoctor === formData.idDoctor);
+    if (!doctorExiste) {
+      alert("❌ El doctor seleccionado no existe");
+      return;
+    }
+
+    // Validar otros campos
+    if (!formData.fecha || !formData.turno || !formData.horaInicio || !formData.horaFin) {
       alert("Por favor completa todos los campos");
       return;
     }
@@ -53,22 +68,24 @@ export default function AdminHorarios() {
     if (success) {
       setFormData({
         fecha: "",
-        turno: "",
-        horaInicio: "",
-        horaFin: "",
-        doctor: { idDoctor: "" }
+        turno: "Mañana",
+        horaInicio: "08:00",
+        horaFin: "12:00",
+        idDoctor: null
       });
       setEditando(null);
     }
   };
 
   const handleEditar = (horario) => {
+    const idDoctor = horario.doctor?.idDoctor || horario.idDoctor;
+    console.log('✏️ Editando horario:', { horario, idDoctor });
     setFormData({
       fecha: horario.fecha,
-      turno: horario.turno,
+      turno: horario.turno || "Mañana",
       horaInicio: horario.horaInicio,
       horaFin: horario.horaFin,
-      doctor: { idDoctor: horario.doctor.idDoctor }
+      idDoctor: parseInt(idDoctor, 10)
     });
     setEditando(horario.idHorario);
   };
@@ -76,10 +93,10 @@ export default function AdminHorarios() {
   const handleCancelar = () => {
     setFormData({
       fecha: "",
-      turno: "",
-      horaInicio: "",
-      horaFin: "",
-      doctor: { idDoctor: "" }
+      turno: "Mañana",
+      horaInicio: "08:00",
+      horaFin: "12:00",
+      idDoctor: null
     });
     setEditando(null);
   };
@@ -175,7 +192,7 @@ export default function AdminHorarios() {
               <label className="form-label fw-bold">Doctor</label>
               <select
                 className="form-select"
-                value={formData.doctor.idDoctor}
+                value={formData.idDoctor || ''}
                 onChange={handleChangeDoctor}
                 style={{
                   border: `2px solid ${THEME.gray[300]}`,
@@ -183,13 +200,18 @@ export default function AdminHorarios() {
                 }}
                 required
               >
-                <option value="">Seleccionar doctor</option>
+                <option value="">Seleccione un doctor</option>
                 {doctores.map((d) => (
                   <option key={d.idDoctor} value={d.idDoctor}>
-                    {d.nombre} ({d.especialidad})
+                    {d.nombre} - {d.especialidad}
                   </option>
                 ))}
               </select>
+              {doctores.length === 0 && (
+                <small style={{color: THEME.danger.main}}>
+                  ⚠️ No hay doctores disponibles. Registre doctores primero.
+                </small>
+              )}
             </div>
 
             <div className="col-md-1 d-flex gap-2">

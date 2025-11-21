@@ -19,8 +19,9 @@ export const useAuth = () => {
   // Verificar si está autenticado al cargar
   useEffect(() => {
     const checkAuth = () => {
+      const token = authService.getToken();
       const storedUser = authService.getStoredUser();
-      if (storedUser && storedUser.token) {
+      if (token && storedUser) {
         setUsuario(storedUser);
         setError(null);
       }
@@ -36,15 +37,16 @@ export const useAuth = () => {
     setError(null);
     try {
       const data = await authService.login(email, password);
+      // Backend devuelve: { token: string, usuario: {...} }
       authService.saveUser(data);
-      setUsuario(data);
+      setUsuario(data.usuario); // Guardar solo el usuario en el estado
       showSuccess(MESSAGES.AUTH.LOGIN_SUCCESS);
-      return { success: true, data };
+      return true; // Mantener compatibilidad con componente Login
     } catch (err) {
       const message = err.response?.data?.message || MESSAGES.AUTH.LOGIN_ERROR;
       setError(message);
       showError(message);
-      return { success: false, error: message };
+      return false;
     } finally {
       setLoading(false);
     }

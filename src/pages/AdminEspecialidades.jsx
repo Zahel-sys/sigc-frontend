@@ -213,7 +213,7 @@ export default function AdminEspecialidades() {
                     <td>
                       {esp.imagen ? (
                         <img
-                          src={`http://localhost:8080/images/especialidades/${esp.imagen}`}
+                          src={`http://localhost:8080${esp.imagen}`}
                           alt={esp.nombre}
                           style={{
                             width: "70px",

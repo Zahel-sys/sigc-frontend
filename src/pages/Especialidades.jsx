@@ -73,7 +73,7 @@ export default function Especialidades() {
                   <img
                     src={
                       esp.imagen
-                        ? `http://localhost:8080/images/especialidades/${esp.imagen}`
+                        ? `http://localhost:8080${esp.imagen}`
                         : "https://via.placeholder.com/280x200?text=Sin+Foto"
                     }
                     alt={esp.nombre}
@@ -83,9 +83,7 @@ export default function Especialidades() {
                       height: "100%",
                       objectFit: "cover"
                     }}
-                    onError={(e) => {
-                      e.target.src = "https://via.placeholder.com/280x200?text=Sin+Foto";
-                    }}
+                    onError={(e) => e.target.src = "https://via.placeholder.com/280x200?text=Sin+Foto"}
                   />
                 </div>
 

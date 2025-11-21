@@ -123,11 +123,12 @@ export default function AdminDoctores() {
                 <img
                   src={
                     doc.imagen
-                      ? `http://localhost:8080/doctores/imagen/${doc.imagen}`
+                      ? `http://localhost:8080${doc.imagen}`
                       : "https://via.placeholder.com/200x250?text=Sin+Foto"
                   }
                   alt={doc.nombre}
                   className="doctor-img"
+                  onError={(e) => e.target.src = "https://via.placeholder.com/200x250?text=Sin+Foto"}
                   style={{ height: "250px", objectFit: "cover" }}
                 />
 

@@ -6,27 +6,9 @@ function ReservarCita({ horarioId, horario, onCitaCreada }) {
   const [error, setError] = useState(null);
   const [citaCreada, setCitaCreada] = useState(null);
 
-  // Obtener el ID del paciente del localStorage
-  const getIdPaciente = () => {
-    try {
-      const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
-      // Buscar el ID en varios campos posibles
-      return usuario.idPaciente || usuario.id || usuario.idUsuario || null;
-    } catch (e) {
-      console.error('Error al parsear usuario:', e);
-      return null;
-    }
-  };
-
   // Obtener el token JWT
   const getToken = () => {
-    try {
-      const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
-      return usuario.token || null;
-    } catch (e) {
-      console.error('Error al obtener token:', e);
-      return null;
-    }
+    return localStorage.getItem('token') || null;
   };
 
   const handleReservar = async () => {
@@ -37,26 +19,36 @@ function ReservarCita({ horarioId, horario, onCitaCreada }) {
     try {
       // Obtener datos
       const token = getToken();
-      const idPaciente = getIdPaciente();
       
       console.log('DEBUG - Token:', token ? 'existe' : 'NO EXISTE');
-      console.log('DEBUG - ID Paciente:', idPaciente);
-      console.log('DEBUG - LocalStorage Usuario:', localStorage.getItem('usuario'));
+      console.log('DEBUG - Horario:', horario);
 
       // Validar token
       if (!token) {
         throw new Error('No hay sesión activa. Por favor, inicia sesión.');
       }
 
-      // Validar que se tiene el ID del paciente
-      if (!idPaciente) {
-        throw new Error('No se encontró información del usuario. Por favor, inicia sesión nuevamente.');
-      }
-
-      // Validar que se proporcionó horarioId
+      // Validar que se proporcionó horarioId y doctorId
       if (!horarioId) {
         throw new Error('Horario no válido');
       }
+
+      const doctorId = horario?.doctor?.idDoctor || horario?.idDoctor;
+      if (!doctorId) {
+        throw new Error('No se pudo identificar el doctor del horario');
+      }
+
+      // Construir fecha y hora en formato ISO (LocalDateTime)
+      // Backend espera: { date: LocalDateTime ISO, description: string, doctorId: number }
+      const fechaHora = `${horario.fecha}T${horario.horaInicio}`;
+      
+      const payload = {
+        date: fechaHora,  // "2025-11-25T09:00:00"
+        description: `Consulta - ${horario.turno}`,
+        doctorId: parseInt(doctorId, 10)  // Number
+      };
+
+      console.log('📤 Enviando cita:', payload);
 
       // Realizar la petición al backend
       const response = await fetch('http://localhost:8080/citas', {
@@ -65,14 +57,7 @@ function ReservarCita({ horarioId, horario, onCitaCreada }) {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          usuario: {
-            idUsuario: idPaciente
-          },
-          horario: {
-            idHorario: horarioId
-          }
-        })
+        body: JSON.stringify(payload)
       });
 
       // Procesar respuesta

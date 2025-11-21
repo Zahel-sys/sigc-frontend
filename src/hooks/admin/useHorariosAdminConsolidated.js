@@ -97,34 +97,28 @@ export function useHorariosAdmin() {
         throw new Error("Las horas de inicio y fin son obligatorias");
       }
       
-      // Extraer idDoctor - soporta estructura plana o anidada (Open/Closed Principle)
-      const idDoctor = datos.idDoctor || datos.doctor?.idDoctor;
+      // Validar idDoctor (debe ser número)
+      const idDoctor = datos.idDoctor;
       
-      console.log('🔍 Extracción de idDoctor:', {
-        'datos.idDoctor': datos.idDoctor,
-        'datos.doctor': datos.doctor,
-        'datos.doctor?.idDoctor': datos.doctor?.idDoctor,
-        'idDoctor extraído': idDoctor,
-        'tipo': typeof idDoctor
+      console.log('🔍 Validando idDoctor:', {
+        'datos': datos,
+        'idDoctor': idDoctor,
+        'tipo': typeof idDoctor,
+        'esNumero': typeof idDoctor === 'number'
       });
       
-      if (!idDoctor || idDoctor === "" || idDoctor === "0") {
-        throw new Error("Debes seleccionar un doctor");
+      if (!idDoctor || typeof idDoctor !== 'number' || idDoctor <= 0) {
+        throw new Error("Debe seleccionar un doctor válido");
       }
 
-      // Validar que parseInt sea válido
-      const idDoctorNum = parseInt(idDoctor, 10);
-      if (isNaN(idDoctorNum) || idDoctorNum <= 0) {
-        throw new Error(`ID de doctor inválido: "${idDoctor}"`);
-      }
-
+      // Preparar payload según estructura del backend
       const payload = {
-        fecha: datos.fecha,
-        turno: datos.turno || null, // Campo opcional
-        horaInicio: datos.horaInicio,
-        horaFin: datos.horaFin,
-        idDoctor: idDoctorNum,
-        estado: datos.estado || "DISPONIBLE"
+        fecha: datos.fecha,           // "YYYY-MM-DD"
+        turno: datos.turno,           // "Mañana", "Tarde", "Noche"
+        horaInicio: datos.horaInicio + (datos.horaInicio.length === 5 ? ':00' : ''), // "HH:MM:SS"
+        horaFin: datos.horaFin + (datos.horaFin.length === 5 ? ':00' : ''),       // "HH:MM:SS"
+        idDoctor: idDoctor,           // Number (NO objeto)
+        disponible: datos.disponible !== undefined ? datos.disponible : true
       };
 
       console.log('📤 Payload a enviar:', payload);

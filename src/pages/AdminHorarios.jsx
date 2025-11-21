@@ -39,7 +39,11 @@ export default function AdminHorarios() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.fecha || !formData.turno || !formData.horaInicio || !formData.horaFin || !formData.doctor.idDoctor) {
+    console.log('📋 Datos del formulario antes de guardar:', formData);
+
+    // Validación mejorada del doctor
+    const idDoctor = formData.doctor?.idDoctor;
+    if (!formData.fecha || !formData.turno || !formData.horaInicio || !formData.horaFin || !idDoctor || idDoctor === "" || idDoctor === "0") {
       alert("Por favor completa todos los campos");
       return;
     }

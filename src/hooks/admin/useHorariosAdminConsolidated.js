@@ -145,7 +145,13 @@ export function useHorariosAdmin() {
       return true;
       
     } catch (err) {
-      console.error('❌ Error:', err);
+      console.error('❌ Error completo:', err);
+      console.error('❌ Error response:', {
+        status: err.response?.status,
+        statusText: err.response?.statusText,
+        data: err.response?.data,
+        headers: err.response?.headers
+      });
       
       let mensaje = MESSAGES.SCHEDULES?.ERROR_SAVE || "No se pudo guardar el horario";
       if (err.response?.data?.message) {

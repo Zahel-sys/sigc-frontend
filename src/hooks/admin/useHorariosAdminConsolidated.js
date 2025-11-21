@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
-import api from '../services/api';
-import { MESSAGES } from '../constants/messages';
-import { showSuccess, showError, showConfirm } from '../utils/alerts';
+import api from '../../services/api';
+import { MESSAGES } from '../../constants/messages';
+import { showSuccess, showError, showConfirm } from '../../utils/alerts';
 
 /**
  * Hook consolidado para gestión completa de horarios (Admin)

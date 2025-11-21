@@ -42,6 +42,7 @@ export function useEspecialidadesAdmin() {
    * @param {Object} datos - Datos del formulario
    * @param {string} datos.nombre - Nombre de la especialidad
    * @param {string} datos.descripcion - Descripción (opcional)
+   * @param {File|string|null} datos.imagen - Archivo de imagen o nombre de archivo existente
    * @param {number|null} idEspecialidad - ID (null para crear, ID para actualizar)
    * @returns {Promise<boolean>} true si éxito, false si error
    */
@@ -55,21 +56,41 @@ export function useEspecialidadesAdmin() {
         throw new Error("El nombre es obligatorio");
       }
 
-      const payload = {
-        nombre: datos.nombre.trim(),
-        descripcion: datos.descripcion?.trim() || null
-      };
+      // Determinar si hay una imagen nueva (File) o existente (string)
+      const tieneImagenNueva = datos.imagen instanceof File;
+      
+      let payload;
+      let headers = {};
 
-      console.log('📤 Enviando especialidad:', payload);
+      if (tieneImagenNueva) {
+        // Si hay archivo nuevo, usar FormData
+        payload = new FormData();
+        payload.append('nombre', datos.nombre.trim());
+        payload.append('descripcion', datos.descripcion?.trim() || '');
+        payload.append('imagen', datos.imagen);
+        headers['Content-Type'] = 'multipart/form-data';
+        console.log('📤 Enviando especialidad con imagen nueva');
+      } else {
+        // Sin archivo nuevo, usar JSON
+        payload = {
+          nombre: datos.nombre.trim(),
+          descripcion: datos.descripcion?.trim() || null
+        };
+        // Si hay nombre de imagen existente (edición sin cambiar imagen)
+        if (datos.imagen && typeof datos.imagen === 'string') {
+          payload.imagen = datos.imagen;
+        }
+        console.log('📤 Enviando especialidad sin imagen nueva:', payload);
+      }
 
       let response;
       if (idEspecialidad) {
         // Actualizar
-        response = await api.put(`/especialidades/${idEspecialidad}`, payload);
+        response = await api.put(`/especialidades/${idEspecialidad}`, payload, { headers });
         showSuccess("Especialidad actualizada", MESSAGES.SPECIALTIES?.UPDATED || "Los datos se guardaron correctamente");
       } else {
         // Crear
-        response = await api.post("/especialidades", payload);
+        response = await api.post("/especialidades", payload, { headers });
         showSuccess("Especialidad creada", MESSAGES.SPECIALTIES?.CREATED || "La especialidad se registró correctamente");
       }
 
@@ -152,42 +173,6 @@ export function useEspecialidadesAdmin() {
   }, [cargarEspecialidades]);
 
   /**
-   * Subir imagen de especialidad al servidor
-   * 
-   * @param {File} archivo - Archivo de imagen a subir
-   * @returns {Promise<string|null>} Nombre del archivo guardado o null si error
-   */
-  const subirImagen = useCallback(async (archivo) => {
-    try {
-      const formData = new FormData();
-      formData.append('imagen', archivo);
-
-      console.log('📤 Subiendo imagen de especialidad...');
-      const res = await api.post('/especialidades/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-
-      const nombreArchivo = res.data?.nombreArchivo || res.data?.filename || res.data?.imagen;
-      
-      if (nombreArchivo) {
-        console.log('✅ Imagen subida exitosamente:', nombreArchivo);
-        showSuccess('Éxito', 'Imagen subida correctamente');
-        return nombreArchivo;
-      }
-
-      throw new Error('No se recibió el nombre del archivo');
-      
-    } catch (err) {
-      console.error('❌ Error al subir imagen:', err);
-      const mensaje = err.response?.data?.message || 'Error al subir la imagen';
-      showError('Error', mensaje);
-      return null;
-    }
-  }, []);
-
-  /**
    * Recargar datos
    */
   const recargar = useCallback(async () => {
@@ -212,7 +197,6 @@ export function useEspecialidadesAdmin() {
     crearEspecialidad,
     actualizarEspecialidad,
     eliminarEspecialidad,
-    subirImagen,
     
     // Recarga
     cargarEspecialidades,

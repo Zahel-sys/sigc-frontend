@@ -9,13 +9,13 @@ import { THEME } from "../config/theme";
  * MIGRADO: Usa hook consolidado useEspecialidadesAdmin
  */
 export default function AdminEspecialidades() {
-  const { especialidades, loading, guardarEspecialidad, eliminarEspecialidad, subirImagen } = useEspecialidadesAdmin();
+  const { especialidades, loading, guardarEspecialidad, eliminarEspecialidad } = useEspecialidadesAdmin();
 
   const [editando, setEditando] = useState(null);
   const [formData, setFormData] = useState({
     nombre: "",
     descripcion: "",
-    imagen: ""
+    imagen: null  // Puede ser File (nuevo) o string (existente)
   });
 
   const handleChange = (e) => {
@@ -23,13 +23,11 @@ export default function AdminEspecialidades() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleFileUpload = async (e) => {
+  const handleFileUpload = (e) => {
     const file = e.target.files[0];
-    if (!file) return;
-
-    const imagenNombre = await subirImagen(file);
-    if (imagenNombre) {
-      setFormData(prev => ({ ...prev, imagen: imagenNombre }));
+    if (file) {
+      // Guardar el archivo directamente, se enviará con FormData en guardarEspecialidad
+      setFormData(prev => ({ ...prev, imagen: file }));
     }
   };
 
@@ -44,7 +42,7 @@ export default function AdminEspecialidades() {
     const success = await guardarEspecialidad(formData, editando);
 
     if (success) {
-      setFormData({ nombre: "", descripcion: "", imagen: "" });
+      setFormData({ nombre: "", descripcion: "", imagen: null });
       setEditando(null);
     }
   };
@@ -53,13 +51,13 @@ export default function AdminEspecialidades() {
     setFormData({
       nombre: esp.nombre,
       descripcion: esp.descripcion,
-      imagen: esp.imagen
+      imagen: esp.imagen  // string con nombre de archivo existente
     });
     setEditando(esp.idEspecialidad);
   };
 
   const handleCancelar = () => {
-    setFormData({ nombre: "", descripcion: "", imagen: "" });
+    setFormData({ nombre: "", descripcion: "", imagen: null });
     setEditando(null);
   };
 

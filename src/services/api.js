@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "",
+  baseURL: "https://sigc-backend.onrender.com",
 });
 
 // Interceptor para agregar el token automáticamente a todas las peticiones

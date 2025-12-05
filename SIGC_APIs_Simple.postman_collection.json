@@ -1,0 +1,451 @@
+{
+	"info": {
+		"_postman_id": "sigc-backend-apis-v1",
+		"name": "SIGC Backend APIs",
+		"description": "APIs del Sistema Integral de Gestion de Citas",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const responseJson = pm.response.json();",
+									"    if (responseJson.token) {",
+									"        pm.environment.set('auth_token', responseJson.token);",
+									"        pm.environment.set('user_id', responseJson.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"admin@sigc.com\",\n    \"password\": \"admin123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Login Paciente",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"paciente@sigc.com\",\n    \"password\": \"paciente123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Registrar Usuario",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nombre\": \"Juan Perez\",\n    \"email\": \"juan.perez@example.com\",\n    \"password\": \"password123\",\n    \"telefono\": \"+51987654321\",\n    \"dni\": \"12345678\",\n    \"direccion\": \"Av. Lima 123\",\n    \"fechaNacimiento\": \"1990-05-15\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "register"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Especialidades",
+			"item": [
+				{
+					"name": "Listar Especialidades",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/especialidades",
+							"host": ["{{base_url}}"],
+							"path": ["especialidades"]
+						}
+					}
+				},
+				{
+					"name": "Crear Especialidad",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nombre\": \"Cardiologia\",\n    \"descripcion\": \"Especialidad del corazon\",\n    \"imagen\": \"https://via.placeholder.com/300x200\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/especialidades",
+							"host": ["{{base_url}}"],
+							"path": ["especialidades"]
+						}
+					}
+				},
+				{
+					"name": "Actualizar Especialidad",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nombre\": \"Cardiologia Avanzada\",\n    \"descripcion\": \"Especialidad avanzada del corazon\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/especialidades/1",
+							"host": ["{{base_url}}"],
+							"path": ["especialidades", "1"]
+						}
+					}
+				},
+				{
+					"name": "Eliminar Especialidad",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/especialidades/1",
+							"host": ["{{base_url}}"],
+							"path": ["especialidades", "1"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Doctores",
+			"item": [
+				{
+					"name": "Listar Doctores",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/doctores",
+							"host": ["{{base_url}}"],
+							"path": ["doctores"]
+						}
+					}
+				},
+				{
+					"name": "Doctores por Especialidad",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/doctores/especialidad/1",
+							"host": ["{{base_url}}"],
+							"path": ["doctores", "especialidad", "1"]
+						}
+					}
+				},
+				{
+					"name": "Crear Doctor",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nombre\": \"Dr. Carlos Mendoza\",\n    \"especialidad_id\": 1,\n    \"email\": \"carlos@hospital.com\",\n    \"telefono\": \"+51987654321\",\n    \"imagen\": \"https://via.placeholder.com/150x150\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/doctores",
+							"host": ["{{base_url}}"],
+							"path": ["doctores"]
+						}
+					}
+				},
+				{
+					"name": "Actualizar Doctor",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nombre\": \"Dr. Carlos Mendoza Rodriguez\",\n    \"especialidad_id\": 1,\n    \"email\": \"carlos@hospital.com\",\n    \"telefono\": \"+51987654321\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/doctores/1",
+							"host": ["{{base_url}}"],
+							"path": ["doctores", "1"]
+						}
+					}
+				},
+				{
+					"name": "Eliminar Doctor",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/doctores/1",
+							"host": ["{{base_url}}"],
+							"path": ["doctores", "1"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Citas",
+			"item": [
+				{
+					"name": "Crear Cita",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"doctor_id\": 1,\n    \"fecha\": \"2024-12-15\",\n    \"hora\": \"10:00\",\n    \"motivo\": \"Consulta general\",\n    \"notas\": \"Dolor en el pecho\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/citas",
+							"host": ["{{base_url}}"],
+							"path": ["citas"]
+						}
+					}
+				},
+				{
+					"name": "Citas del Usuario",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/citas/usuario/{{user_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["citas", "usuario", "{{user_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Todas las Citas",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/citas",
+							"host": ["{{base_url}}"],
+							"path": ["citas"]
+						}
+					}
+				},
+				{
+					"name": "Cancelar Cita",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/citas/1/cancelar",
+							"host": ["{{base_url}}"],
+							"path": ["citas", "1", "cancelar"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Horarios",
+			"item": [
+				{
+					"name": "Horarios Disponibles",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/horarios/doctor/1/fecha/2024-12-15",
+							"host": ["{{base_url}}"],
+							"path": ["horarios", "doctor", "1", "fecha", "2024-12-15"]
+						}
+					}
+				},
+				{
+					"name": "Configurar Horarios",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"doctor_id\": 1,\n    \"dia_semana\": \"lunes\",\n    \"hora_inicio\": \"09:00\",\n    \"hora_fin\": \"17:00\",\n    \"duracion_cita\": 60\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/horarios",
+							"host": ["{{base_url}}"],
+							"path": ["horarios"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Dashboard",
+			"item": [
+				{
+					"name": "Dashboard Admin",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/dashboard/admin",
+							"host": ["{{base_url}}"],
+							"path": ["dashboard", "admin"]
+						}
+					}
+				},
+				{
+					"name": "Dashboard Cliente",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/dashboard/cliente",
+							"host": ["{{base_url}}"],
+							"path": ["dashboard", "cliente"]
+						}
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080"
+		},
+		{
+			"key": "auth_token",
+			"value": ""
+		},
+		{
+			"key": "user_id",
+			"value": ""
+		}
+	]
+}

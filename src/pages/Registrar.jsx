@@ -63,7 +63,10 @@ export default function Registrar() {
       }
     } catch (err) {
       console.error("Error al registrar:", err);
-      showError("Error al registrar el usuario.");
+      console.error("Response data:", err.response?.data);
+      console.error("Response status:", err.response?.status);
+      const mensaje = err.response?.data?.message || "Error al registrar el usuario.";
+      showError(mensaje);
     }
   };
 

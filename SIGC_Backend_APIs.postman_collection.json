@@ -1,0 +1,780 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+		"name": "SIGC Backend APIs",
+		"description": "Colección completa de APIs para el Sistema Integral de Gestión de Citas (SIGC). Endpoints principales: Autenticación, Especialidades CRUD, Doctores CRUD, Citas CRUD, Horarios, Usuarios. Autenticación: JWT Bearer Token. Base URL: http://localhost:8080",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "12345"
+	},
+	"item": [
+		{
+			"name": "Autenticacion",
+			"item": [
+				{
+					"name": "Login Usuario",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const responseJson = pm.response.json();",
+									"    if (responseJson.token) {",
+									"        pm.environment.set('auth_token', responseJson.token);",
+									"        pm.environment.set('user_id', responseJson.id);",
+									"        pm.environment.set('user_rol', responseJson.rol);",
+									"        console.log('Token guardado:', responseJson.token);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"admin@sigc.com\",\n    \"password\": \"admin123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "Endpoint para autenticar usuarios en el sistema. Credenciales de prueba: Admin: admin@sigc.com / admin123, Paciente: paciente@sigc.com / paciente123"
+					}
+				},
+				{
+					"name": "Login Paciente",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const responseJson = pm.response.json();",
+									"    if (responseJson.token) {",
+									"        pm.environment.set('auth_token', responseJson.token);",
+									"        pm.environment.set('user_id', responseJson.id);",
+									"        pm.environment.set('user_rol', responseJson.rol);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"paciente@sigc.com\",\n    \"password\": \"paciente123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					}
+				},
+				{
+					"name": "Registrar Usuario",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nombre\": \"Juan Pérez\",\n    \"email\": \"juan.perez@example.com\",\n    \"password\": \"password123\",\n    \"telefono\": \"+51987654321\",\n    \"dni\": \"12345678\",\n    \"direccion\": \"Av. Lima 123, Lima\",\n    \"fechaNacimiento\": \"1990-05-15\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						},
+						"description": "Endpoint para registrar nuevos usuarios pacientes.\n\n**Campos requeridos:**\n- nombre: Nombre completo\n- email: Email único\n- password: Mínimo 6 caracteres\n- telefono: Formato +51XXXXXXXXX\n- dni: 8 dígitos\n\n**Respuesta esperada:**\n```json\n{\n  \"id\": 2,\n  \"email\": \"juan.perez@example.com\",\n  \"nombre\": \"Juan Pérez\",\n  \"rol\": \"PACIENTE\",\n  \"token\": \"eyJhbGciOiJIUzI1NiIs...\"\n}\n```"
+					}
+				},
+				{
+					"name": "Obtener Perfil Usuario",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/me",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"me"
+							]
+						},
+						"description": "Obtiene los datos del usuario autenticado actual."
+					}
+				}
+			]
+		},
+		{
+			"name": "🏥 Especialidades CRUD",
+			"item": [
+				{
+					"name": "Listar Especialidades",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/especialidades",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"especialidades"
+							]
+						},
+						"description": "Obtiene todas las especialidades médicas disponibles.\n\n**Respuesta esperada:**\n```json\n[\n  {\n    \"id\": 1,\n    \"nombre\": \"Cardiología\",\n    \"descripcion\": \"Especialidad médica que se dedica al estudio, diagnóstico y tratamiento de las enfermedades del corazón\",\n    \"imagen\": \"https://example.com/cardiologia.jpg\",\n    \"activa\": true,\n    \"created_at\": \"2024-01-01T00:00:00.000Z\"\n  }\n]\n```"
+					}
+				},
+				{
+					"name": "Crear Especialidad",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nombre\": \"Neurología\",\n    \"descripcion\": \"Especialidad médica que trata los trastornos del sistema nervioso\",\n    \"imagen\": \"https://via.placeholder.com/300x200/dc3545/ffffff?text=Neurología\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/especialidades",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"especialidades"
+							]
+						},
+						"description": "Crea una nueva especialidad médica. **Requiere rol ADMIN**."
+					}
+				},
+				{
+					"name": "Actualizar Especialidad",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nombre\": \"Neurología Avanzada\",\n    \"descripcion\": \"Especialidad médica que trata los trastornos complejos del sistema nervioso\",\n    \"imagen\": \"https://via.placeholder.com/300x200/dc3545/ffffff?text=Neurología+Avanzada\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/especialidades/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"especialidades",
+								"1"
+							]
+						},
+						"description": "Actualiza una especialidad existente. **Requiere rol ADMIN**."
+					}
+				},
+				{
+					"name": "Eliminar Especialidad",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/especialidades/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"especialidades",
+								"1"
+							]
+						},
+						"description": "Elimina una especialidad. **Requiere rol ADMIN**."
+					}
+				}
+			]
+		},
+		{
+			"name": "👩‍⚕️ Doctores CRUD",
+			"item": [
+				{
+					"name": "Listar Doctores",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/doctores",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"doctores"
+							]
+						},
+						"description": "Obtiene todos los doctores registrados.\n\n**Respuesta esperada:**\n```json\n[\n  {\n    \"id\": 1,\n    \"nombre\": \"Dr. Carlos Mendoza\",\n    \"especialidad_id\": 1,\n    \"especialidad\": \"Cardiología\",\n    \"email\": \"carlos.mendoza@hospital.com\",\n    \"telefono\": \"+51987654321\",\n    \"imagen\": \"https://via.placeholder.com/150x150\",\n    \"activo\": true\n  }\n]\n```"
+					}
+				},
+				{
+					"name": "Doctores por Especialidad",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/doctores/especialidad/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"doctores",
+								"especialidad",
+								"1"
+							]
+						},
+						"description": "Obtiene todos los doctores de una especialidad específica."
+					}
+				},
+				{
+					"name": "Crear Doctor",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nombre\": \"Dra. Ana García\",\n    \"especialidad_id\": 2,\n    \"email\": \"ana.garcia@hospital.com\",\n    \"telefono\": \"+51987654322\",\n    \"imagen\": \"https://via.placeholder.com/150x150/28a745/ffffff?text=AG\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/doctores",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"doctores"
+							]
+						},
+						"description": "Crea un nuevo doctor. **Requiere rol ADMIN**."
+					}
+				},
+				{
+					"name": "Actualizar Doctor",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nombre\": \"Dra. Ana García Rodríguez\",\n    \"especialidad_id\": 2,\n    \"email\": \"ana.garcia@hospital.com\",\n    \"telefono\": \"+51987654322\",\n    \"imagen\": \"https://via.placeholder.com/150x150/28a745/ffffff?text=AGR\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/doctores/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"doctores",
+								"1"
+							]
+						},
+						"description": "Actualiza un doctor existente. **Requiere rol ADMIN**."
+					}
+				},
+				{
+					"name": "Eliminar Doctor",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/doctores/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"doctores",
+								"1"
+							]
+						},
+						"description": "Elimina un doctor. **Requiere rol ADMIN**."
+					}
+				}
+			]
+		},
+		{
+			"name": "📅 Citas CRUD",
+			"item": [
+				{
+					"name": "Crear Cita",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"doctor_id\": 1,\n    \"fecha\": \"2024-12-15\",\n    \"hora\": \"10:00\",\n    \"motivo\": \"Consulta general\",\n    \"notas\": \"Paciente refiere dolor en el pecho\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/citas",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"citas"
+							]
+						},
+						"description": "Crea una nueva cita médica. El usuario se obtiene del token JWT.\n\n**Campos requeridos:**\n- doctor_id: ID del doctor\n- fecha: Formato YYYY-MM-DD\n- hora: Formato HH:MM\n- motivo: Motivo de la consulta\n\n**Respuesta esperada:**\n```json\n{\n  \"id\": 1,\n  \"usuario_id\": 2,\n  \"doctor_id\": 1,\n  \"fecha\": \"2024-12-15\",\n  \"hora\": \"10:00\",\n  \"estado\": \"confirmada\",\n  \"motivo\": \"Consulta general\",\n  \"created_at\": \"2024-12-05T00:00:00.000Z\"\n}\n```"
+					}
+				},
+				{
+					"name": "Citas del Usuario",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/citas/usuario/{{user_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"citas",
+								"usuario",
+								"{{user_id}}"
+							]
+						},
+						"description": "Obtiene todas las citas de un usuario específico.\n\n**Respuesta esperada:**\n```json\n[\n  {\n    \"id\": 1,\n    \"doctor_nombre\": \"Dr. Carlos Mendoza\",\n    \"especialidad\": \"Cardiología\",\n    \"fecha\": \"2024-12-15\",\n    \"hora\": \"10:00\",\n    \"estado\": \"confirmada\",\n    \"motivo\": \"Consulta general\"\n  }\n]\n```"
+					}
+				},
+				{
+					"name": "Todas las Citas (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/citas",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"citas"
+							]
+						},
+						"description": "Obtiene todas las citas del sistema. **Requiere rol ADMIN**."
+					}
+				},
+				{
+					"name": "Cancelar Cita",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/citas/1/cancelar",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"citas",
+								"1",
+								"cancelar"
+							]
+						},
+						"description": "Cancela una cita existente. Solo el usuario propietario o admin pueden cancelar."
+					}
+				},
+				{
+					"name": "Actualizar Estado Cita",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"estado\": \"completada\",\n    \"notas_doctor\": \"Consulta realizada sin complicaciones\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/citas/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"citas",
+								"1"
+							]
+						},
+						"description": "Actualiza el estado de una cita. **Requiere rol ADMIN**.\n\n**Estados válidos:** pendiente, confirmada, completada, cancelada"
+					}
+				}
+			]
+		},
+		{
+			"name": "🕐 Horarios",
+			"item": [
+				{
+					"name": "Horarios Disponibles por Doctor y Fecha",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/horarios/doctor/1/fecha/2024-12-15",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"horarios",
+								"doctor",
+								"1",
+								"fecha",
+								"2024-12-15"
+							]
+						},
+						"description": "Obtiene los horarios disponibles para un doctor en una fecha específica.\n\n**Respuesta esperada:**\n```json\n[\n  {\n    \"id\": 1,\n    \"hora\": \"09:00\",\n    \"disponible\": true\n  },\n  {\n    \"id\": 2,\n    \"hora\": \"10:00\",\n    \"disponible\": false\n  }\n]\n```"
+					}
+				},
+				{
+					"name": "Configurar Horarios Doctor (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"doctor_id\": 1,\n    \"dia_semana\": \"lunes\",\n    \"hora_inicio\": \"09:00\",\n    \"hora_fin\": \"17:00\",\n    \"duracion_cita\": 60,\n    \"activo\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/horarios",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"horarios"
+							]
+						},
+						"description": "Configura los horarios de trabajo de un doctor. **Requiere rol ADMIN**."
+					}
+				}
+			]
+		},
+		{
+			"name": "👥 Usuarios (Admin)",
+			"item": [
+				{
+					"name": "Listar Usuarios",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/usuarios",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"usuarios"
+							]
+						},
+						"description": "Obtiene todos los usuarios registrados. **Requiere rol ADMIN**."
+					}
+				},
+				{
+					"name": "Actualizar Rol Usuario",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"rol\": \"ADMIN\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/usuarios/2/rol",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"usuarios",
+								"2",
+								"rol"
+							]
+						},
+						"description": "Actualiza el rol de un usuario. **Requiere rol ADMIN**.\n\n**Roles válidos:** ADMIN, PACIENTE"
+					}
+				},
+				{
+					"name": "Desactivar Usuario",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/usuarios/2/desactivar",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"usuarios",
+								"2",
+								"desactivar"
+							]
+						},
+						"description": "Desactiva un usuario. **Requiere rol ADMIN**."
+					}
+				}
+			]
+		},
+		{
+			"name": "📊 Dashboard & Estadísticas",
+			"item": [
+				{
+					"name": "Estadísticas Admin",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/dashboard/admin",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"dashboard",
+								"admin"
+							]
+						},
+						"description": "Obtiene estadísticas generales del sistema. **Requiere rol ADMIN**.\n\n**Respuesta esperada:**\n```json\n{\n  \"total_usuarios\": 25,\n  \"total_doctores\": 8,\n  \"total_especialidades\": 6,\n  \"citas_hoy\": 12,\n  \"citas_pendientes\": 5,\n  \"citas_completadas\": 150\n}\n```"
+					}
+				},
+				{
+					"name": "Dashboard Cliente",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/dashboard/cliente",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"dashboard",
+								"cliente"
+							]
+						},
+						"description": "Obtiene resumen de citas del cliente autenticado."
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Script que se ejecuta antes de cada request",
+					"console.log('🚀 Ejecutando request:', pm.request.name);",
+					"",
+					"// Verificar si se necesita token para este endpoint",
+					"const authRequired = pm.request.headers.find(h => h.key === 'Authorization');",
+					"if (authRequired && !pm.environment.get('auth_token')) {",
+					"    console.warn('⚠️ Se requiere autenticación. Ejecuta Login primero.');",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Script que se ejecuta después de cada response",
+					"console.log('📊 Response status:', pm.response.code);",
+					"console.log('⏱️ Response time:', pm.response.responseTime + 'ms');",
+					"",
+					"// Tests básicos para todos los endpoints",
+					"pm.test('Status code is not 500', function () {",
+					"    pm.expect(pm.response.code).to.not.equal(500);",
+					"});",
+					"",
+					"pm.test('Response time is less than 5000ms', function () {",
+					"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+					"});",
+					"",
+					"// Test específico para endpoints que requieren JSON",
+					"if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
+					"    pm.test('Response is valid JSON', function () {",
+					"        pm.response.to.be.json;",
+					"    });",
+					"}"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "auth_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user_rol",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

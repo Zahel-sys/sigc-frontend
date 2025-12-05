@@ -24,7 +24,7 @@ const ErrorFallback = ({ error, resetErrorBoundary }) => {
                 </div>
                 
                 {/* Error Details (only in development) */}
-                {process.env.NODE_ENV === 'development' && (
+                {import.meta.env.MODE === 'development' && (
                   <div className="alert alert-danger text-start mb-4">
                     <h6 className="fw-bold">Detalles del error:</h6>
                     <code className="small">{error.message}</code>
@@ -113,7 +113,7 @@ export const AppErrorBoundary = ({ children }) => {
       FallbackComponent={ErrorFallback}
       onError={(error, errorInfo) => {
         // Log error to console in development
-        if (process.env.NODE_ENV === 'development') {
+        if (import.meta.env.MODE === 'development') {
           console.error('Error Boundary caught an error:', error, errorInfo);
         }
         

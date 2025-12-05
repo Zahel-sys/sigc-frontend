@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import PrivateRoute from '../PrivateRoute';
 import { describe, it, expect, beforeEach, vi } from 'vitest';

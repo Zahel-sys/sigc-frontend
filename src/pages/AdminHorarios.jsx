@@ -33,14 +33,38 @@ export default function AdminHorarios() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const payload = { ...form, doctor: { idDoctor: form.doctor.idDoctor } };
+    try {
+      if (!form.doctor.idDoctor) {
+        alert("Debes seleccionar un doctor");
+        return;
+      }
 
-    if (editando) await api.put(`/horarios/${editando}`, payload);
-    else await api.post("/horarios", payload);
+      // Enviar solo los campos necesarios, convertir idDoctor a número
+      const payload = {
+        fecha: form.fecha,
+        turno: form.turno,
+        horaInicio: form.horaInicio,
+        horaFin: form.horaFin,
+        idDoctor: parseInt(form.doctor.idDoctor, 10)
+      };
 
-    setForm({ fecha: "", turno: "", horaInicio: "", horaFin: "", doctor: { idDoctor: "" } });
-    setEditando(null);
-    cargarDatos();
+      console.log("📤 Enviando payload:", payload);
+
+      if (editando) {
+        await api.put(`/horarios/${editando}`, payload);
+        console.log("✅ Horario actualizado");
+      } else {
+        await api.post("/horarios", payload);
+        console.log("✅ Horario agregado");
+      }
+
+      setForm({ fecha: "", turno: "", horaInicio: "", horaFin: "", doctor: { idDoctor: "" } });
+      setEditando(null);
+      await cargarDatos();
+    } catch (error) {
+      console.error("❌ Error al guardar horario:", error.response?.data || error.message);
+      alert("Error: " + (error.response?.data?.message || error.message));
+    }
   };
 
   const editarHorario = (h) => {
@@ -56,8 +80,14 @@ export default function AdminHorarios() {
 
   const eliminarHorario = async (id) => {
     if (confirm("¿Eliminar este horario?")) {
-      await api.delete(`/horarios/${id}`);
-      cargarDatos();
+      try {
+        await api.delete(`/horarios/${id}`);
+        console.log("🗑️ Horario eliminado");
+        await cargarDatos();
+      } catch (error) {
+        console.error("❌ Error al eliminar:", error.response?.data || error.message);
+        alert("Error: " + (error.response?.data?.message || error.message));
+      }
     }
   };
 

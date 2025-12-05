@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import api from "../services/api";
+import { authAPI } from "../services/api";
 import { showSuccess, showError, showWarning } from "../utils/alerts";
 
 export default function Login() {
@@ -19,28 +19,27 @@ export default function Login() {
 
     setLoading(true);
     try {
-      const res = await api.post("/auth/login", { email, password });
+      const res = await authAPI.login({ email, password });
+      const userData = res.data;
 
-      if (res.data && !res.data.error) {
-        localStorage.setItem("usuario", JSON.stringify(res.data));
+      if (userData && !userData.error) {
+        localStorage.setItem("usuario", JSON.stringify(userData));
 
-        if (res.data.rol === "ADMIN") {
+        if (userData.rol === "ADMIN") {
           showSuccess("Bienvenido Administrador", "Acceso concedido");
           navigate("/admin");
-        } else if (res.data.rol === "PACIENTE") {
+        } else if (userData.rol === "PACIENTE") {
           showSuccess("Inicio de sesión exitoso", "Bienvenido a SIGC");
           navigate("/cliente");
         } else {
-          showWarning("Rol desconocido. Contacta al administrador.");
+          showWarning("Rol desconocido: " + userData.rol);
         }
       } else {
-        showError("Credenciales inválidas. Intenta nuevamente.");
+        showError("Respuesta inválida del servidor");
       }
     } catch (err) {
-      console.error("Error en inicio de sesión:", err);
-      const mensaje =
-        err.response?.data?.message || "Error al iniciar sesión. Intenta más tarde.";
-      showError(mensaje);
+      console.error("❌ Error en inicio de sesión:", err);
+      showError("Error al iniciar sesión. Intenta más tarde.");
     } finally {
       setLoading(false);
     }

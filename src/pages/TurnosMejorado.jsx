@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import { es } from "date-fns/locale";
@@ -9,7 +9,7 @@ import { CardSkeleton, LoadingSpinner, EmptyState, ButtonLoading } from "../comp
 import { SectionErrorBoundary } from "../components/loading/ErrorBoundaries";
 import { useAsyncOperation, useFormSubmit } from "../hooks/useAsyncOperations";
 import api from "../services/api";
-import { showSuccess, showWarning, showError, showConfirm } from "../utils/alerts";
+import { showSuccess, showWarning, showError } from "../utils/alerts";
 
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -39,14 +39,7 @@ export default function TurnosMejorado() {
 
   const { isSubmitting, handleSubmit: submitCita } = useFormSubmit();
 
-  // 🩺 Cargar doctores filtrados por especialidad
-  useEffect(() => {
-    const usuario = localStorage.getItem("usuario");
-    setIsAuthenticated(!!usuario);
-    loadDoctores();
-  }, [idEspecialidad]);
-
-  const loadDoctores = async () => {
+  const loadDoctores = useCallback(async () => {
     try {
       await fetchDoctores(async () => {
         const res = await api.get("/doctores");
@@ -61,7 +54,14 @@ export default function TurnosMejorado() {
       console.error("Error al cargar doctores:", error);
       showError("No se pudieron cargar los doctores disponibles");
     }
-  };
+  }, [idEspecialidad, fetchDoctores]);
+
+  // 🩺 Cargar doctores filtrados por especialidad
+  useEffect(() => {
+    const usuario = localStorage.getItem("usuario");
+    setIsAuthenticated(!!usuario);
+    loadDoctores();
+  }, [loadDoctores]);
 
   // 🕓 Cargar horarios disponibles del doctor seleccionado
   const cargarHorarios = async (doctor, fecha = null) => {

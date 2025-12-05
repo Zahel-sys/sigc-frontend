@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { validationSchemas } from "../utils/validators/schemas";
 import api from "../services/api";
-import { showSuccess, showError, showWarning } from "../utils/alerts";
+import { showSuccess, showError } from "../utils/alerts";
 
 export default function RegistrarMejorado() {
   const navigate = useNavigate();
@@ -38,7 +38,7 @@ export default function RegistrarMejorado() {
   const onSubmit = async (data) => {
     setLoading(true);
     try {
-      const { confirmPassword, ...userData } = data;
+      const { confirmPassword: _confirmPassword, ...userData } = data; // confirmPassword se valida pero no se envía
       const res = await api.post("/auth/register", userData);
 
       if (res.data && res.data.idUsuario) {

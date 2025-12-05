@@ -59,9 +59,9 @@ export default function AdminEspecialidades() {
   // Editar especialidad (cargar datos al formulario)
   const editarEspecialidad = (esp) => {
     setForm({
-      nombre: esp.nombre,
-      descripcion: esp.descripcion,
-      imagen: esp.imagen,
+      nombre: esp.nombre || "",
+      descripcion: esp.descripcion || "",
+      imagen: esp.imagen || "",
     });
     setEditando(esp.idEspecialidad);
   };
